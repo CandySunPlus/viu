@@ -9,33 +9,90 @@ interface INodeAttrs {
 }
 
 enum ParseState {
-    TEXT,
     OPEN,
     CLOSE,
     ATTR,
+    TEXT,
+    DEFINE,
     ATTR_KEY,
+    ATTR_EQUAL,
     ATTR_VALUE,
     ATTR_BREAK,
     ATTR_KEY_END,
-    ATTR_EQUAL,
     ATTR_VALUE_START,
     ATTR_VALUE_SINGLE_QOUTE,
     ATTR_VALUE_DOUBLE_QOUTE
 }
 
 class HyperParser {
-    private state = ParseState.TEXT;
-    private parseStore = [];
+    private state: ParseState;
+    private parseStore: any[];
     constructor(private h: ( tagName: string, attrs: INodeAttrs, children: any[] ) => any) {
     }
 
     public tpl(strings, ...values) {
+        let nodesMeta = [];
+        this.parseStore = [];
+        this.state = ParseState.TEXT;
+
         for (let i = 0; i < strings.length; i++) {
-            let p = this.parse(strings[i]);
-            console.log(p);
+            let p = this.parseNode(strings[i]);
             if (i < values.length) {
                 let val = values[i];
-            } else {
+                let defineState = this.state;
+                defineState = [ParseState.ATTR_VALUE_DOUBLE_QOUTE, ParseState.ATTR_VALUE_SINGLE_QOUTE, ParseState.ATTR_VALUE_START]
+                .indexOf(defineState) >= 0 ? ParseState.ATTR_VALUE : defineState;
+                defineState = [ParseState.ATTR].indexOf(defineState) >= 0 ? ParseState.ATTR_KEY : defineState;
+                p.push([ParseState.DEFINE, defineState, val]);
+            }
+            nodesMeta.push.apply(nodesMeta, p);
+        }
+        this.parseNodesMeta(nodesMeta);
+    }
+
+    private parseNodesMeta(nodesMeta: any[]) {
+        let node = { tagName: null, attrs: {}, children: [] },
+            stack = [ { node, childrenCount: -1 } ];
+        for (let i = 0; i < nodesMeta.length; i++) {
+            let current = stack[stack.length - 1]['node'],
+                nodeMeta = nodesMeta[i],
+                state = nodeMeta[0];
+
+            if (state === ParseState.OPEN && /^\//.test(nodeMeta[1])) {
+                let childrenCount = stack[stack.length - 1]['childrenCount'];
+                if (stack.length > 1) {
+                    stack.pop();
+                    stack[stack.length - 1]['node']['children'][childrenCount] = this.h(
+                        current.tagName, current.attrs, current.children.length ? current.children : []
+                    );
+                }
+            } else if (state === ParseState.OPEN) {
+                let _node = { tagName: nodeMeta[1], attrs: {}, children: [] };
+                current.children.push(_node);
+                stack.push({ node: _node, childrenCount: current.children.length - 1 });
+            } else if (state === ParseState.ATTR_KEY || (state === ParseState.DEFINE && nodeMeta[1] === ParseState.ATTR_KEY)) {
+                let key = '', _nodeMeta;
+                for (; i < nodesMeta.length; i ++) {
+                    _nodeMeta = nodesMeta[i];
+                    if (_nodeMeta[0] === ParseState.ATTR_KEY) {
+                        key.concat(key, _nodeMeta[1]);
+                    } else if (_nodeMeta[0] === ParseState.DEFINE && _nodeMeta[1] === ParseState.ATTR_KEY) {
+                        if (Object.prototype.toString.call(_nodeMeta[2]) === '[object Object]' && !key) {
+                            for (let _key of Object.keys(_nodeMeta[2])) {
+                                if (!current.attrs.hasOwnProperty(_key)) {
+                                    current.attrs[_key] = _nodeMeta[2][_key];
+                                }
+                            }
+                        } else {
+                            key.concat(key, _nodeMeta[2]);
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                if (_nodeMeta[0] === ParseState.ATTR_EQUAL) {
+                    i ++;
+                }
             }
         }
     }
@@ -74,7 +131,7 @@ class HyperParser {
         return false;
     }
 
-    private parse(str) {
+    private parseNode(str) {
         let p = [];
 
         for (let c of str) {
@@ -159,12 +216,17 @@ class HyperParser {
 
 const hp = new HyperParser(function(tagName, attrs, children) {
     console.log(tagName, attrs, children);
+    return { tagName, attrs, children };
 });
 
+let newC = 'new-class';
+let elem = 'elem';
+
 hp.tpl`
-<div class="panel" opened onclick=${update}>
+<div class="panel ${newC}" opened onclick=${update}>
     <h1 class="panel-title">This is title</h1>
     <br />
+    <${elem} />
     <div class="panel-content">
     <span> Next Content </span>
     </div>
