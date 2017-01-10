@@ -5,12 +5,9 @@ function diff(newEl: Element, oldEl: Element) {
         oldEl.removeChild(oldEl.firstChild);
     }
 
-    [].forEach.call(newEl.children, (el) => {
-        oldEl.appendChild(el);
-    });
-
-    console.log(newEl);
-
+    while (newEl.firstChild) {
+        oldEl.appendChild(newEl.firstChild);
+    }
 }
 
 class List {
