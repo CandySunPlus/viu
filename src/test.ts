@@ -31,6 +31,7 @@ class App {
         'bbbbbbbb',
         'cccccccc'
     ];
+    private inputTxt = '';
     private el: Element;
     private listCmp: List;
 
@@ -46,15 +47,24 @@ class App {
         diff(newEl, this.el);
     }
 
+    public oninput = (evt) => {
+        this.inputTxt = evt.currentTarget.value;
+        let newEl = this.render();
+        // @todo: use dom diff
+        diff(newEl, this.el);
+    }
+
     public render() {
         let newC = 'new-class';
         return v`
         <div class= "panel ${newC}">
         <h1 class="panel-title">This is title</h1>
-        <br />
         <div class="panel-content">
         ${this.listCmp.render()}
         </div>
+        ${this.inputTxt}
+        <br />
+        <input value="${this.inputTxt}" type="text" oninput=${this.oninput} />
         <button onclick=${this.insert} >添加</button>
         </div>
         `;

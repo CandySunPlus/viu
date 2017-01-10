@@ -133,7 +133,9 @@ export class HyperParser<T> {
                         if (!current.attrs.hasOwnProperty(key)) {
                             current.attrs[key] = _nodeMeta[1];
                         } else {
-                            current.attrs[key] = current.attrs[key].concat(_nodeMeta[1]);
+                            if (Object.prototype.toString.call(current.attrs[key]) === '[object String]') {
+                                current.attrs[key] = current.attrs[key].concat(_nodeMeta[1]);
+                            }
                         }
                     } else if (_nodeMeta[0] === ParseState.DEFINE &&
                                [ParseState.ATTR_KEY, ParseState.ATTR_VALUE].indexOf(_nodeMeta[1]) >= 0) {
@@ -295,7 +297,7 @@ export class HyperParser<T> {
                 this.state = ParseState.ATTR;
             } else if (this.state === ParseState.ATTR_VALUE_START && /\S/.test(c)) {
                 this.state = ParseState.ATTR_VALUE;
-            } else if (this.state === ParseState.ATTR_VALUE_START && /\S/.test(c)) {
+            } else if (this.state === ParseState.ATTR_VALUE_START && /\s/.test(c)) {
                 p.push([ParseState.ATTR_VALUE, this.flushParseStore()], [ParseState.ATTR_BREAK]);
                 this.state = ParseState.ATTR;
             } else if (this.isInValueStates()) {
