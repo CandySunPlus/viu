@@ -26,7 +26,7 @@ enum ParseState {
     ATTR_VALUE_DOUBLE_QOUTE
 }
 
-class HyperParser<T> {
+export class HyperParser<T> {
     private static closeRE = RegExp('^(' + [
         'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'command', 'embed',
         'frame', 'hr', 'img', 'input', 'isindex', 'keygen', 'link', 'meta', 'param',
@@ -44,34 +44,13 @@ class HyperParser<T> {
         'vkern'
     ].join('|') + ')(?:[\.#][a-zA-Z0-9\u007F-\uFFFF_:-]+)*$');
 
-    private static attrToPropMap = {
-        'class': 'className',
-        'for': 'htmlFor',
-        'http-equiv': 'httpEquiv'
-    };
-
     private state: ParseState;
     private parseStore: any[];
-    private h: IHyperScript<T>;
     public static isSelfCloseTag(tagName: string): boolean {
         return this.closeRE.test(tagName);
     }
 
-    public static transformAttrToProp<U>(h: IHyperScript<U>): IHyperScript<U> {
-        return function(tagName: string, attrs: INodeAttrs, children: U[] ): U {
-            for (let attrName of Object.keys(attrs)) {
-                if (HyperParser.attrToPropMap.hasOwnProperty(attrName)) {
-                    attrs[HyperParser.attrToPropMap[attrName]] = attrs[attrName];
-                    delete attrs[attrName];
-                }
-            }
-            return h(tagName, attrs, children);
-        };
-    }
-
-    constructor(h: IHyperScript<T>) {
-        this.h = HyperParser.transformAttrToProp<T>(h);
-    }
+    constructor(private h: IHyperScript<T>) { }
 
     public tpl(strings, ...values) {
         let nodesMeta = [];
@@ -333,9 +312,4 @@ class HyperParser<T> {
         return p;
     }
 }
-
-export const hp = <T>(h: IHyperScript<T>): Function => {
-    let hp = new HyperParser<T>(h);
-    return hp.tpl.bind(hp);
-};
 
