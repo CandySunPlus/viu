@@ -1,13 +1,15 @@
 import v from './v';
+import * as morphdom from 'morphdom';
 
 function diff(newEl: Element, oldEl: Element) {
-    while (oldEl.firstChild) {
-        oldEl.removeChild(oldEl.firstChild);
-    }
-
-    while (newEl.firstChild) {
-        oldEl.appendChild(newEl.firstChild);
-    }
+    morphdom(oldEl, newEl);
+    // while (oldEl.firstChild) {
+    //     oldEl.removeChild(oldEl.firstChild);
+    // }
+    //
+    // while (newEl.firstChild) {
+    //     oldEl.appendChild(newEl.firstChild);
+    // }
 }
 
 class List {
