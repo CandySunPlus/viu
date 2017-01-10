@@ -1,11 +1,9 @@
-
-function update() {
-    console.log('update.');
-}
-
-
 interface INodeAttrs {
     [name: string]: any;
+}
+
+interface IHyperScript<T> {
+    (tagName: string, attrs: INodeAttrs, children: T[]): T;
 }
 
 enum ParseState {
@@ -24,10 +22,51 @@ enum ParseState {
     ATTR_VALUE_DOUBLE_QOUTE
 }
 
-class HyperParser {
+class HyperParser<T> {
+    private static closeRE = RegExp('^(' + [
+        'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'command', 'embed',
+        'frame', 'hr', 'img', 'input', 'isindex', 'keygen', 'link', 'meta', 'param',
+        'source', 'track', 'wbr',
+        // SVG TAGS
+        'animate', 'animateTransform', 'circle', 'cursor', 'desc', 'ellipse',
+        'feBlend', 'feColorMatrix', 'feComposite',
+        'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap',
+        'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR',
+        'feGaussianBlur', 'feImage', 'feMergeNode', 'feMorphology',
+        'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile',
+        'feTurbulence', 'font-face-format', 'font-face-name', 'font-face-uri',
+        'glyph', 'glyphRef', 'hkern', 'image', 'line', 'missing-glyph', 'mpath',
+        'path', 'polygon', 'polyline', 'rect', 'set', 'stop', 'tref', 'use', 'view',
+        'vkern'
+    ].join('|') + ')(?:[\.#][a-zA-Z0-9\u007F-\uFFFF_:-]+)*$');
+
+    private static attrToPropMap = {
+        'class': 'className',
+        'for': 'htmlFor',
+        'http-equiv': 'httpEquiv'
+    };
+
     private state: ParseState;
     private parseStore: any[];
-    constructor(private h: ( tagName: string, attrs: INodeAttrs, children: any[] ) => any) {
+    private h: IHyperScript<T>;
+    public static isSelfCloseTag(tagName: string): boolean {
+        return this.closeRE.test(tagName);
+    }
+
+    public static transformAttrToProp<U>(h: IHyperScript<U>): IHyperScript<U> {
+        return function(tagName: string, attrs: INodeAttrs, children: U[] ): U {
+            for (let attrName of Object.keys(attrs)) {
+                if (HyperParser.attrToPropMap.hasOwnProperty(attrName)) {
+                    attrs[HyperParser.attrToPropMap[attrName]] = attrs[attrName];
+                    delete attrs[attrName];
+                }
+            }
+            return h(tagName, attrs, children);
+        };
+    }
+
+    constructor(h: IHyperScript<T>) {
+        this.h = HyperParser.transformAttrToProp<T>(h);
     }
 
     public tpl(strings, ...values) {
@@ -47,7 +86,15 @@ class HyperParser {
             }
             nodesMeta.push.apply(nodesMeta, p);
         }
-        this.parseNodesMeta(nodesMeta);
+        console.log('parse nodes meta:', nodesMeta.map(nodeMeta => {
+            let transformNodeMeta = [ParseState[nodeMeta[0]]];
+            for (let i = 1; i < nodeMeta.length; i++) {
+                transformNodeMeta[i] = nodeMeta[i];
+                transformNodeMeta[i - 1] = ParseState[nodeMeta[i - 1]];
+            }
+            return transformNodeMeta;
+        }));
+        return this.parseNodesMeta(nodesMeta);
     }
 
     private parseNodesMeta(nodesMeta: any[]) {
@@ -58,24 +105,25 @@ class HyperParser {
                 nodeMeta = nodesMeta[i],
                 state = nodeMeta[0];
 
+
             if (state === ParseState.OPEN && /^\//.test(nodeMeta[1])) {
                 let childrenCount = stack[stack.length - 1]['childrenCount'];
-                if (stack.length > 1) {
-                    stack.pop();
-                    stack[stack.length - 1]['node']['children'][childrenCount] = this.h(
-                        current.tagName, current.attrs, current.children.length ? current.children : []
-                    );
-                }
+            if (stack.length > 1) {
+                stack.pop();
+                stack[stack.length - 1]['node']['children'][childrenCount] = this.h(
+                    current.tagName, current.attrs, current.children.length ? current.children : []
+                );
+            }
             } else if (state === ParseState.OPEN) {
                 let _node = { tagName: nodeMeta[1], attrs: {}, children: [] };
                 current.children.push(_node);
                 stack.push({ node: _node, childrenCount: current.children.length - 1 });
             } else if (state === ParseState.ATTR_KEY || (state === ParseState.DEFINE && nodeMeta[1] === ParseState.ATTR_KEY)) {
                 let key = '', _nodeMeta;
-                for (; i < nodesMeta.length; i ++) {
+                for (; i < nodesMeta.length; i++) {
                     _nodeMeta = nodesMeta[i];
                     if (_nodeMeta[0] === ParseState.ATTR_KEY) {
-                        key.concat(key, _nodeMeta[1]);
+                        key = key.concat(_nodeMeta[1]);
                     } else if (_nodeMeta[0] === ParseState.DEFINE && _nodeMeta[1] === ParseState.ATTR_KEY) {
                         if (Object.prototype.toString.call(_nodeMeta[2]) === '[object Object]' && !key) {
                             for (let _key of Object.keys(_nodeMeta[2])) {
@@ -84,17 +132,88 @@ class HyperParser {
                                 }
                             }
                         } else {
-                            key.concat(key, _nodeMeta[2]);
+                            key = key.concat(_nodeMeta[2]);
                         }
                     } else {
                         break;
                     }
                 }
                 if (_nodeMeta[0] === ParseState.ATTR_EQUAL) {
-                    i ++;
+                    i++;
                 }
+
+                let j = i;
+
+                for (; i < nodesMeta.length; i++) {
+                    _nodeMeta = nodesMeta[i];
+                    if (_nodeMeta[0] === ParseState.ATTR_VALUE || _nodeMeta[0] === ParseState.ATTR_KEY) {
+                        if (!current.attrs.hasOwnProperty(key)) {
+                            current.attrs[key] = _nodeMeta[1];
+                        } else {
+                            current.attrs[key] = current.attrs[key].concat(_nodeMeta[1]);
+                        }
+                    } else if (_nodeMeta[0] === ParseState.DEFINE &&
+                               [ParseState.ATTR_KEY, ParseState.ATTR_VALUE].indexOf(_nodeMeta[1]) >= 0) {
+                        if (!current.attrs.hasOwnProperty(key)) {
+                            current.attrs[key] = _nodeMeta[2];
+                        } else {
+                            current.attrs[key] = current.attrs[key].concat(_nodeMeta[2]);
+                        }
+                    } else {
+                        if (key.length && !current.attrs.hasOwnProperty(key) && i === j &&
+                            [ParseState.CLOSE, ParseState.ATTR_BREAK].indexOf(_nodeMeta[0]) >= 0) {
+                            current.attrs[key] = key.toLowerCase();
+                        }
+                        break;
+                    }
+                }
+            } else if (state === ParseState.ATTR_KEY) {
+                current.attrs[nodeMeta[1]] = true;
+            } else if (state === ParseState.DEFINE && nodeMeta[1] === ParseState.ATTR_KEY) {
+                current.attrs[nodeMeta[2]] = true;
+            } else if (state === ParseState.CLOSE) {
+                if (HyperParser.isSelfCloseTag(current.tagName) && stack.length) {
+                    let childrenCount = stack[stack.length - 1]['childrenCount'];
+                    stack.pop();
+                    stack[stack.length - 1]['node']['children'][childrenCount] = this.h(
+                        current.tagName, current.attrs, current.children.length ? current.children : []
+                    );
+                }
+            } else if (state === ParseState.DEFINE && nodeMeta[1] === ParseState.TEXT) {
+                if (nodeMeta[2] === undefined || nodeMeta[2] === null) {
+                    nodeMeta[2] = '';
+                } else if (!nodeMeta[2]) {
+                    nodeMeta[2] = nodeMeta[2].toString();
+                }
+
+                if (Array.isArray(nodeMeta[2][0])) {
+                    current.children.push.apply(current.children, nodeMeta[2]);
+                } else {
+                    current.children.push(nodeMeta[2]);
+                }
+            } else if (state === ParseState.TEXT) {
+                current.children.push(nodeMeta[1]);
+            } else if ([ParseState.ATTR_EQUAL, ParseState.ATTR_BREAK].indexOf(state) >= 0) {
+                // 无操作, 空白符
+            } else {
+                throw new Error(`unhandled state: ${state}`);
             }
         }
+
+        if (node.children.length > 1 && /^\s*$/.test(node.children[0])) {
+            node.children.shift();
+        }
+
+        if (node.children.length > 2 || (node.children.length === 2 && /\S/.test(node.children[1]))) {
+            throw new Error('can only have one root element');
+        }
+
+        if (Array.isArray(node.children[0]) && Object.prototype.toString.call(node.children[0][0]) &&
+            Array.isArray(node.children[0][2])) {
+            node.children[0] = this.h(node.children[0][0], node.children[0][1], node.children[0][2]);
+        }
+
+        return node.children[0];
     }
 
     private flushParseStore() {
@@ -179,7 +298,7 @@ class HyperParser {
             } else if ((this.state === ParseState.ATTR_KEY_END || this.state === ParseState.ATTR) && c === '=') {
                 p.push([ParseState.ATTR_EQUAL]);
                 this.state = ParseState.ATTR_VALUE_START;
-            } else if ((this.state === ParseState.ATTR_KEY_END || this.state === ParseState.ATTR) && /[^\s]/.test(c)) {
+            } else if ((this.state === ParseState.ATTR_KEY_END || this.state === ParseState.ATTR) && /\S/.test(c)) {
                 p.push([ParseState.ATTR_BREAK]);
                 if (/[\w-]/.test(c)) {
                     this.parseStore.push(c);
@@ -194,9 +313,9 @@ class HyperParser {
             } else if (this.isPairQoute(c)) {
                 p.push([ParseState.ATTR_VALUE, this.flushParseStore()], [ParseState.ATTR_BREAK]);
                 this.state = ParseState.ATTR;
-            } else if (this.state === ParseState.ATTR_VALUE_START && /[^\s]/.test(c)) {
+            } else if (this.state === ParseState.ATTR_VALUE_START && /\S/.test(c)) {
                 this.state = ParseState.ATTR_VALUE;
-            } else if (this.state === ParseState.ATTR_VALUE_START && /[\s]/.test(c)) {
+            } else if (this.state === ParseState.ATTR_VALUE_START && /\S/.test(c)) {
                 p.push([ParseState.ATTR_VALUE, this.flushParseStore()], [ParseState.ATTR_BREAK]);
                 this.state = ParseState.ATTR;
             } else if (this.isInValueStates()) {
@@ -214,22 +333,25 @@ class HyperParser {
     }
 }
 
-const hp = new HyperParser(function(tagName, attrs, children) {
-    console.log(tagName, attrs, children);
+const hp = new HyperParser<any>(function(tagName, attrs, children) {
     return { tagName, attrs, children };
 });
 
 let newC = 'new-class';
-let elem = 'elem';
 
-hp.tpl`
+function update() {
+    console.log('update.');
+}
+
+let x = hp.tpl`
 <div class="panel ${newC}" opened onclick=${update}>
-    <h1 class="panel-title">This is title</h1>
-    <br />
-    <${elem} />
-    <div class="panel-content">
-    <span> Next Content </span>
-    </div>
+<h1 class="panel-title">This is title</h1>
+<br />
+<div class="panel-content">
+<span> Next Content </span>
+</div>
 </div>
 `;
 
+
+console.log(JSON.stringify(x, null, 4));
