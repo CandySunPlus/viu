@@ -1,27 +1,73 @@
 import v from './v';
 
-let newC = 'new-class';
+function diff(newEl: Element, oldEl: Element) {
+    while (oldEl.firstChild) {
+        oldEl.removeChild(oldEl.firstChild);
+    }
 
-let list = [
-    'aaaaaaaa',
-    'bbbbbbbb',
-    'cccccccc'
-];
+    [].forEach.call(newEl.children, (el) => {
+        oldEl.appendChild(el);
+    });
 
-function update() {
-    console.log('update.');
+    console.log(newEl);
+
 }
 
-let x = v`
-<div class= "panel ${newC}" ${newC} onclick=${update}>
-<h1 class="panel-title">This is title</h1>
-<br />
-<div class="panel-content">
-${list.map(item => v`<li>${item}</li>`)}
-</div>
-</div>
-`;
+class List {
+    constructor(private list: string[]) {}
+    public render() {
+        return v`
+        <ul>
+            ${this.list.map(item => v`<li>${item}</li>`)}
+        </ul>
+        `;
+    }
 
-console.log(x);
+    public update(list: string[]) {
+        this.list = list;
+    }
+}
 
-document.querySelector('.app').appendChild(x);
+class App {
+    private list = [
+        'aaaaaaaa',
+        'bbbbbbbb',
+        'cccccccc'
+    ];
+    private el: Element;
+    private listCmp: List;
+
+    constructor() {
+        this.listCmp = new List(this.list);
+    }
+
+    public insert = () => {
+        this.list.push((+new Date()).toString());
+        this.listCmp.update(this.list);
+        let newEl = this.render();
+        // @todo: use dom diff
+        diff(newEl, this.el);
+    }
+
+    public render() {
+        let newC = 'new-class';
+        return v`
+        <div class= "panel ${newC}">
+        <h1 class="panel-title">This is title</h1>
+        <br />
+        <div class="panel-content">
+        ${this.listCmp.render()}
+        </div>
+        <button onclick=${this.insert} >添加</button>
+        </div>
+        `;
+    }
+
+    public mount(container: Element) {
+        this.el = this.render();
+        container.appendChild(this.el);
+    }
+}
+
+const app = new App();
+app.mount(document.querySelector('.app'));
