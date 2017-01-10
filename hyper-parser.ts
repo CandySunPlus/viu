@@ -1,8 +1,12 @@
-interface INodeAttrs {
+import debug from 'debug';
+
+const logger = debug('hyper-parser:debug');
+
+export interface INodeAttrs {
     [name: string]: any;
 }
 
-interface IHyperScript<T> {
+export interface IHyperScript<T> {
     (tagName: string, attrs: INodeAttrs, children: T[]): T;
 }
 
@@ -86,7 +90,7 @@ class HyperParser<T> {
             }
             nodesMeta.push.apply(nodesMeta, p);
         }
-        console.log('parse nodes meta:', nodesMeta.map(nodeMeta => {
+        logger('parse nodes meta:', nodesMeta.map(nodeMeta => {
             let transformNodeMeta = [ParseState[nodeMeta[0]]];
             for (let i = 1; i < nodeMeta.length; i++) {
                 transformNodeMeta[i] = nodeMeta[i];
@@ -167,10 +171,6 @@ class HyperParser<T> {
                         break;
                     }
                 }
-            } else if (state === ParseState.ATTR_KEY) {
-                current.attrs[nodeMeta[1]] = true;
-            } else if (state === ParseState.DEFINE && nodeMeta[1] === ParseState.ATTR_KEY) {
-                current.attrs[nodeMeta[2]] = true;
             } else if (state === ParseState.CLOSE) {
                 if (HyperParser.isSelfCloseTag(current.tagName) && stack.length) {
                     let childrenCount = stack[stack.length - 1]['childrenCount'];
@@ -250,14 +250,15 @@ class HyperParser<T> {
         return false;
     }
 
-    private parseNode(str) {
+    private parseNode(str: string) {
         let p = [];
 
-        for (let c of str) {
+        for (let i = 0; i < str.length; i++) {
+            let c = str.charAt(i);
             if (this.state === ParseState.TEXT && c === '<') {
                 // 找到节点起始标记
                 let parseContent = this.flushParseStore();
-                if (this.parseStore.length) {
+                if (parseContent) {
                     p.push([this.state, parseContent]);
                 }
                 this.state = ParseState.OPEN;
@@ -333,25 +334,8 @@ class HyperParser<T> {
     }
 }
 
-const hp = new HyperParser<any>(function(tagName, attrs, children) {
-    return { tagName, attrs, children };
-});
+export const hp = <T>(h: IHyperScript<T>): Function => {
+    let hp = new HyperParser<T>(h);
+    return hp.tpl.bind(hp);
+};
 
-let newC = 'new-class';
-
-function update() {
-    console.log('update.');
-}
-
-let x = hp.tpl`
-<div class="panel ${newC}" opened onclick=${update}>
-<h1 class="panel-title">This is title</h1>
-<br />
-<div class="panel-content">
-<span> Next Content </span>
-</div>
-</div>
-`;
-
-
-console.log(JSON.stringify(x, null, 4));
