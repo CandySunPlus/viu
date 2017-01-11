@@ -6,28 +6,30 @@ function diff(newEl: Element, oldEl: Element) {
 }
 
 class List {
-    constructor(private list: string[]) {}
+    constructor(private list: any[]) {}
     public render() {
         return v`
         <ul>
-            ${this.list.map(item => v`<li>${item}</li>`)}
+            ${this.list.map(item => v`<li>
+            <input type="checkbox" ${item.checked ? 'checked' : ''} name="">
+            <span style="${item.checked ? 'text-decoration: line-through; color: #ccc' : ''}">${item.title}</span>
+        </li>`)}
         </ul>
         `;
     }
 
-    public update(list: string[]) {
+    public update(list: any[]) {
         this.list = list;
     }
 }
 
 class App {
-    private list = [
-        'aaaaaaaa',
-        'bbbbbbbb',
-        'cccccccc'
-    ];
+    private list = [ {
+        title: '这是一条已完成的',
+        checked: true
+    }];
     private newC = 'new-class';
-    private inputTxt = '12334';
+    private inputTxt = '';
     private el: Element;
     private listCmp: List;
 
@@ -36,12 +38,18 @@ class App {
     }
 
     public insert = () => {
-        this.list.push((+new Date()).toString());
-        this.listCmp.update(this.list);
-        this.newC = 'other-class';
-        let newEl = this.render();
-        // @todo: use dom diff
-        diff(newEl, this.el);
+        if (this.inputTxt) {
+            this.list.push({
+                title: this.inputTxt,
+                checked: false
+            });
+            this.inputTxt = '';
+            this.listCmp.update(this.list);
+            this.newC = 'other-class';
+            let newEl = this.render();
+            // @todo: use dom diff
+            diff(newEl, this.el);
+        }
     }
 
     public oninput = (evt) => {
@@ -54,14 +62,14 @@ class App {
     public render() {
         return v`
         <div class="panel">
-        <h1 class="panel-title ${this.newC}">This is title</h1>
+        <h1 class="panel-title ${this.newC}">TodoList</h1>
         <div class="panel-content">
         ${this.listCmp.render()}
         </div>
-        ${this.inputTxt}
-        <br />
         <input value="${this.inputTxt}" type="text" oninput=${this.oninput} />
-        <button onclick=${this.insert} >添加</button>
+        <button onclick=${this.insert}>添加</button>
+        <br />
+        ${this.inputTxt}
         </div>
         `;
     }
