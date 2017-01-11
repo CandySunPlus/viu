@@ -1,8 +1,10 @@
 import v from './v';
+import diffNode from './diff-element';
 import * as morphdom from 'morphdom';
 
 function diff(newEl: Element, oldEl: Element) {
-    morphdom(oldEl, newEl);
+    diffNode(oldEl, newEl);
+    // morphdom(oldEl, newEl);
     // while (oldEl.firstChild) {
     //     oldEl.removeChild(oldEl.firstChild);
     // }
