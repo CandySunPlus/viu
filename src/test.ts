@@ -1,17 +1,8 @@
 import v from './v';
 import diffNode from './diff-element';
-import * as morphdom from 'morphdom';
 
 function diff(newEl: Element, oldEl: Element) {
     diffNode(oldEl, newEl);
-    // morphdom(oldEl, newEl);
-    // while (oldEl.firstChild) {
-    //     oldEl.removeChild(oldEl.firstChild);
-    // }
-    //
-    // while (newEl.firstChild) {
-    //     oldEl.appendChild(newEl.firstChild);
-    // }
 }
 
 class List {
@@ -35,7 +26,8 @@ class App {
         'bbbbbbbb',
         'cccccccc'
     ];
-    private inputTxt = '';
+    private newC = 'new-class';
+    private inputTxt = '12334';
     private el: Element;
     private listCmp: List;
 
@@ -46,6 +38,7 @@ class App {
     public insert = () => {
         this.list.push((+new Date()).toString());
         this.listCmp.update(this.list);
+        this.newC = 'other-class';
         let newEl = this.render();
         // @todo: use dom diff
         diff(newEl, this.el);
@@ -59,10 +52,9 @@ class App {
     }
 
     public render() {
-        let newC = 'new-class';
         return v`
-        <div class= "panel ${newC}">
-        <h1 class="panel-title">This is title</h1>
+        <div class="panel">
+        <h1 class="panel-title ${this.newC}">This is title</h1>
         <div class="panel-content">
         ${this.listCmp.render()}
         </div>

@@ -9,42 +9,15 @@ const XHTML_NS = 'http://www.w3.org/1999/xhtml';
 const SPECIAL_NODE_NAME = ['OPTION', 'INPUT', 'TEXTAREA', 'SELECT'];
 
 export default function diffNode(oldNode: Node, newNode: Node) {
-    // walkNodeTree(oldNode);
-    let modifiedNode = oldNode;
-    // if (modifiedNode.nodeType === NodeType.ELEMENT_NODE) {
-    //     if (newNode.nodeType === NodeType.ELEMENT_NODE) {
-    //         if (oldNode.nodeName !== newNode.nodeName) {
-    //             modifiedNode = moveChildren(<Element>oldNode, createElementNS(newNode.nodeName, newNode.namespaceURI));
-    //         }
-    //     } else {
-    //         modifiedNode = newNode;
-    //     }
-    // } else if ([NodeType.COMMENT_NODE, NodeType.TEXT_NODE].indexOf(modifiedNode.nodeType) >= 0) {
-    //     if (newNode.nodeType === modifiedNode.nodeType) {
-    //         modifiedNode.nodeValue = newNode.nodeValue;
-    //         return modifiedNode;
-    //     } else {
-    //         modifiedNode = newNode;
-    //     }
-    // }
-
-    if (modifiedNode === newNode) {
-        // remove oldNode
-    } else {
-        modifyNode(modifiedNode, newNode);
+    if (oldNode !== newNode) {
+        modifyNode(oldNode, newNode);
     }
 
-    // if (modifiedNode !== oldNode && oldNode.parentNode) {
-    //     oldNode.parentNode.replaceChild(modifiedNode, oldNode);
-    // }
-
-    return modifiedNode;
+    return oldNode;
 }
 
 function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
-    if (toNode.isSameNode && toNode.isSameNode(fromNode)) { return; }
-
-    // modifyElAttrs(<Element>fromNode, <Element>toNode);
+    if (toNode === fromNode) { return; }
 
     if (fromNode.nodeName !== 'TEXTAREA') {
         let currentToNodeChild = toNode.firstChild,
@@ -55,7 +28,7 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
             nextToNodeChild = currentToNodeChild.nextSibling;
             while (currentFromNodeChild) {
                 nextFromNodeChild = currentFromNodeChild.nextSibling;
-                if (currentToNodeChild.isSameNode && currentToNodeChild.isSameNode(currentFromNodeChild)) {
+                if (currentToNodeChild === currentFromNodeChild) {
                     currentToNodeChild = nextToNodeChild;
                     currentFromNodeChild = nextFromNodeChild;
                     continue outerLoop;
@@ -64,10 +37,16 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
                 if (currentFromNodeChild.nodeType === currentToNodeChild.nodeType) {
                     if (currentFromNodeChild.nodeType === NodeType.ELEMENT_NODE) {
                         if (currentFromNodeChild.nodeName === currentToNodeChild.nodeName) {
+                            modifyElAttrs(<Element>currentFromNodeChild, <Element>currentToNodeChild);
                             modifyNode(currentFromNodeChild, currentToNodeChild);
+                            currentToNodeChild = nextToNodeChild;
+                            currentFromNodeChild = nextFromNodeChild;
+                            continue outerLoop;
                         }
                     } else if ([NodeType.TEXT_NODE, NodeType.COMMENT_NODE].indexOf(currentFromNodeChild.nodeType) >= 0) {
-                        currentFromNodeChild.nodeValue = currentToNodeChild.nodeValue;
+                        if (currentFromNodeChild.nodeValue !== currentToNodeChild.nodeValue) {
+                            currentFromNodeChild.nodeValue = currentToNodeChild.nodeValue;
+                        }
                         currentToNodeChild = nextToNodeChild;
                         currentFromNodeChild = nextFromNodeChild;
                         continue outerLoop;
@@ -142,6 +121,31 @@ function specialNodeModifier(fromNode: Node, toNode: Node) {
     modifier[fromNode.nodeName](fromNode, toNode);
 }
 
+function modifyElAttrs(fromEl: Element, toEl: Element) {
+    let fromAttrs = fromEl.attributes;
+    let toAttrs = toEl.attributes;
+
+    for (let i = fromAttrs.length - 1; i >= 0; i--) {
+        let attr = fromAttrs[i];
+
+        if (attr.specified) {
+            if (!hasAttribute(toEl, attr)) {
+                removeAttribute(fromEl, attr);
+            }
+        }
+    }
+
+    for (let i = toAttrs.length - 1; i >= 0; i--) {
+        let attr = toAttrs[i],
+            attrValue = attr.value,
+            fromAttrValue = getAttribute(fromEl, attr);
+
+        if (fromAttrValue !== attrValue) {
+            setAttribute(fromEl, attr, attrValue);
+        }
+    }
+}
+
 function moveChildren(sourceEl: Element, targetEl: Element) {
     while (sourceEl.firstChild) {
         targetEl.appendChild(sourceEl.firstChild);
@@ -196,29 +200,4 @@ function getAttribute(el: Element, attr: Attr) {
     return namespaceURI ?
         el.getAttributeNS(namespaceURI, attr.localName || attrName) :
         el.getAttribute(attrName);
-}
-
-function modifyElAttrs(fromEl: Element, toEl: Element) {
-    let fromAttrs = fromEl.attributes;
-    let toAttrs = toEl.attributes;
-
-    for (let i = fromAttrs.length - 1; i >= 0; i--) {
-        let attr = fromAttrs[i];
-
-        if (attr.specified) {
-            if (!hasAttribute(toEl, attr)) {
-                removeAttribute(fromEl, attr);
-            }
-        }
-    }
-
-    for (let i = toAttrs.length - 1; i >= 0; i--) {
-        let attr = toAttrs[i],
-            attrValue = attr.value,
-            fromAttrValue = getAttribute(fromEl, attr);
-
-        if (fromAttrValue !== attrValue) {
-            setAttribute(fromEl, attr, attrValue);
-        }
-    }
 }
