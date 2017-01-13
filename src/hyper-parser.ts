@@ -1,6 +1,3 @@
-import debug from 'debug';
-
-const logger = debug('hyper-parser:debug');
 
 export interface INodeAttrs {
     [name: string]: any;
@@ -69,14 +66,14 @@ export class HyperParser<T> {
             }
             nodesMeta.push.apply(nodesMeta, p);
         }
-        logger('parse nodes meta:', nodesMeta.map(nodeMeta => {
-            let transformNodeMeta = [ParseState[nodeMeta[0]]];
-            for (let i = 1; i < nodeMeta.length; i++) {
-                transformNodeMeta[i] = nodeMeta[i];
-                transformNodeMeta[i - 1] = ParseState[nodeMeta[i - 1]];
-            }
-            return transformNodeMeta;
-        }));
+        // console.log('parse nodes meta:', nodesMeta.map(nodeMeta => {
+        //     let transformNodeMeta = [ParseState[nodeMeta[0]]];
+        //     for (let i = 1; i < nodeMeta.length; i++) {
+        //         transformNodeMeta[i] = nodeMeta[i];
+        //         transformNodeMeta[i - 1] = ParseState[nodeMeta[i - 1]];
+        //     }
+        //     return transformNodeMeta;
+        // }));
         return this.parseNodesMeta(nodesMeta);
     }
 
