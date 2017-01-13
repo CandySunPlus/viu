@@ -55,6 +55,13 @@ class App implements IAPP {
             list[action.index].checked = !list[action.index].checked;
             this.setData('list', list);
         },
+        TOGGLE_ALL: (action) => {
+            let list = this.data.list.map(item => {
+                item.checked = action.checked;
+                return item;
+            });
+            this.setData('list', list);
+        },
         INPUTNEW: (action) => {
             this.setData('name', action.name);
         },
@@ -96,7 +103,7 @@ class App implements IAPP {
         value="${this.data.name}" type="text" oninput=${this.oninput} onkeydown=${this.insert} />
         </header>
         <section class="main">
-        <input class="toggle-all" type="checkbox">
+        <input class="toggle-all" ${this.filtedTodos('ACTIVE').length === 0 ? 'checked' : ''}  onchange=${this.toggleAll} type="checkbox">
         <label for="toggle-all">Mark all as complete</label>
         ${this.listCmp.render(this.filtedTodos())}
         </section>
@@ -124,6 +131,11 @@ class App implements IAPP {
 
     private isFilter(filter: string): boolean {
         return this.data.filter === filter;
+    }
+
+    private toggleAll = (evt: Event) => {
+        let el = <HTMLInputElement>evt.currentTarget;
+        this.send('TOGGLE_ALL', { checked: el.checked });
     }
 
     private filtedTodos(filter?: string): any[] {
