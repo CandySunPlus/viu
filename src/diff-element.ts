@@ -23,7 +23,6 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
         let currentToNodeChild = toNode.firstChild,
             currentFromNodeChild = fromNode.firstChild,
             nextToNodeChild, nextFromNodeChild;
-
         outerLoop: while (currentToNodeChild) {
             nextToNodeChild = currentToNodeChild.nextSibling;
             while (currentFromNodeChild) {

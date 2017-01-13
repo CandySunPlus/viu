@@ -169,8 +169,10 @@ export class HyperParser<T> {
 
                 if (Array.isArray(nodeMeta[2][0])) {
                     current.children.push.apply(current.children, nodeMeta[2]);
-                } else {
+                } else if (nodeMeta[2] instanceof Element || Array.isArray(nodeMeta[2])) {
                     current.children.push(nodeMeta[2]);
+                } else {
+                    current.children.push(nodeMeta[2].toString());
                 }
             } else if (state === ParseState.TEXT) {
                 current.children.push(nodeMeta[1]);

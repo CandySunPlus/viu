@@ -1,76 +1,115 @@
+import '../node_modules/todomvc-common/base.css';
+import '../node_modules/todomvc-app-css/index.css';
 import v from './v';
 import diffNode from './diff-element';
 
-function diff(newEl: Element, oldEl: Element) {
-    diffNode(oldEl, newEl);
+interface IAPP {
+    send: (actionType: string, action: any) => void;
 }
 
 class List {
-    constructor(private list: any[]) {}
-    public render() {
+    constructor(private app: IAPP) { }
+    public render(list: any[]) {
         return v`
-        <ul>
-            ${this.list.map(item => v`<li>
-            <input type="checkbox" ${item.checked ? 'checked' : ''} name="">
-            <span style="${item.checked ? 'text-decoration: line-through; color: #ccc' : ''}">${item.title}</span>
+        <ul class="todo-list">
+            ${list.map((item, index) => v`<li class="${item.checked ? 'completed' : ''}">
+            <div class="view">
+            <input type="checkbox" class="toggle" ${item.checked ? 'checked' : ''} onchange=${this.toggleItem(index)} />
+            <label>${item.title}</label>
+            <button class="destroy" onclick=${this.destory(index)}></button>
+            </div>
+            <input class="edit" type="text" value="what">
         </li>`)}
         </ul>
         `;
     }
 
-    public update(list: any[]) {
-        this.list = list;
+    private destory = (index) => {
+        return () => {
+            this.app.send('DESTORY', { index });
+        };
+    }
+
+    private toggleItem = (index) => {
+        return () => {
+            this.app.send('TOGGLE', { index });
+        };
     }
 }
 
-class App {
-    private list = [ {
-        title: '这是一条已完成的',
-        checked: true
-    }];
-    private newC = 'new-class';
-    private inputTxt = '';
+class App implements IAPP {
+    private data = {
+        list: [{
+            title: '这是一条已完成的',
+            checked: true
+        }],
+        name: '',
+        filter: 'ALL'
+    };
     private el: Element;
     private listCmp: List;
 
-    constructor() {
-        this.listCmp = new List(this.list);
-    }
-
-    public insert = () => {
-        if (this.inputTxt) {
-            this.list.push({
-                title: this.inputTxt,
-                checked: false
-            });
-            this.inputTxt = '';
-            this.listCmp.update(this.list);
-            this.newC = 'other-class';
-            let newEl = this.render();
-            // @todo: use dom diff
-            diff(newEl, this.el);
+    private reducers = {
+        TOGGLE: (action) => {
+            let list = this.data.list;
+            list[action.index].checked = !list[action.index].checked;
+            this.setData('list', list);
+        },
+        INPUTNEW: (action) => {
+            this.setData('name', action.name);
+        },
+        DESTORY: (action) => {
+            let list = this.data.list;
+            list.splice(action.index, 1);
+            this.setData('list', list);
+        },
+        INSERT: (action) => {
+            let list = this.data.list;
+            list.push(action.item);
+            this.setData('list', list);
+            this.setData('name', '');
+        },
+        FILTER: (action) => {
+            this.setData('filter', action.filter);
+        },
+        CLEAR_COMPLETED: () => {
+            let list = this.data.list.filter(item => !item.checked);
+            this.setData('list', list);
         }
+    };
+
+    constructor() {
+        this.listCmp = new List(this);
     }
 
-    public oninput = (evt) => {
-        this.inputTxt = evt.currentTarget.value;
-        let newEl = this.render();
-        // @todo: use dom diff
-        diff(newEl, this.el);
+    public send(actionType: string, action?: any) {
+        this.reducers[actionType].call(this, action);
     }
 
     public render() {
         return v`
-        <div class="panel">
-        <h1 class="panel-title ${this.newC}">TodoList</h1>
-        <div class="panel-content">
-        ${this.listCmp.render()}
-        </div>
-        <input value="${this.inputTxt}" type="text" oninput=${this.oninput} />
-        <button onclick=${this.insert}>添加</button>
-        <br />
-        ${this.inputTxt}
-        </div>
+        <section class="todoapp">
+        <header class="header">
+        <h1>todos</h1>
+        <input class="new-todo" autofocus
+        placeholder="What needs to be done"
+        value="${this.data.name}" type="text" oninput=${this.oninput} onkeydown=${this.insert} />
+        </header>
+        <section class="main">
+        <input class="toggle-all" type="checkbox">
+        <label for="toggle-all">Mark all as complete</label>
+        ${this.listCmp.render(this.filtedTodos())}
+        </section>
+        <footer class="footer">
+        <span class="todo-count"><strong>${this.filtedTodos('ACTIVE').length}</strong> item left</span>
+        <ul class="filters">
+            <li><a class="${this.isFilter('ALL') ? 'selected' : ''}" onclick=${this.filter('ALL')} href="#">All</a></li>
+            <li><a class="${this.isFilter('ACTIVE') ? 'selected' : ''}" onclick=${this.filter('ACTIVE')} href="#">Active</a></li>
+            <li><a class="${this.isFilter('COMPLETED') ? 'selected' : ''}" onclick=${this.filter('COMPLETED')} href="#">Completed</a></li>
+        </ul>
+        <button class="clear-completed" onclick=${this.clearCompleted}>Clear completed</button>
+        </footer>
+        </section>
         `;
     }
 
@@ -78,7 +117,56 @@ class App {
         this.el = this.render();
         container.appendChild(this.el);
     }
+
+    private clearCompleted = () => {
+        this.send('CLEAR_COMPLETED');
+    }
+
+    private isFilter(filter: string): boolean {
+        return this.data.filter === filter;
+    }
+
+    private filtedTodos(filter?: string): any[] {
+        filter = filter ? filter : this.data.filter;
+        return this.data.list.filter(item => {
+            if (filter === 'ALL') {
+                return true;
+            } else if (filter === 'ACTIVE') {
+                return !item.checked;
+            } else if (filter === 'COMPLETED') {
+                return item.checked;
+            }
+        });
+    }
+
+    private insert = (evt: KeyboardEvent) => {
+        if (this.data.name && evt.keyCode === 13) {
+            this.send('INSERT', {
+                item: {
+                    title: this.data.name,
+                    checked: false
+                }
+            });
+        }
+    }
+
+    private oninput = (evt) => {
+        this.send('INPUTNEW', { name: evt.currentTarget.value });
+    }
+
+
+    private filter = (filter: string) => {
+        return () => {
+            this.send('FILTER', { filter });
+        };
+    }
+
+    private setData(key: string, value: any) {
+        this.data[key] = value;
+        let newEl = this.render();
+        diffNode(this.el, newEl);
+    }
 }
 
 const app = new App();
-app.mount(document.querySelector('.app'));
+app.mount(document.querySelector('.app-container'));
