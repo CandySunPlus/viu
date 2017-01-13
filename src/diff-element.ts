@@ -61,7 +61,7 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
 
         while (currentFromNodeChild) {
             nextFromNodeChild = currentFromNodeChild.nextSibling;
-            fromNode.removeChild(currentToNodeChild);
+            fromNode.removeChild(currentFromNodeChild);
             currentFromNodeChild = nextFromNodeChild;
         }
 
