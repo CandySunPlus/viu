@@ -73,13 +73,22 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
 }
 
 function specialNodeModifier(fromNode: Node, toNode: Node) {
+    function syncBooleanAttrProp(fromEl: Element, toEl: Element, propName: string) {
+        if (fromEl[propName] !== toEl[propName]) {
+            fromEl[propName] = toEl[propName];
+        }
+    }
     let modifier = {
         OPTION: function(fromNode: Node, toNode: Node) {
-
+            let fromEl = <HTMLOptionElement>fromNode,
+                toEl = <HTMLOptionElement>toNode;
+            syncBooleanAttrProp(fromEl, toEl, 'selected');
         },
         INPUT: function(fromNode: Node, toNode: Node) {
             let fromEl = <HTMLInputElement>fromNode,
                 toEl = <HTMLInputElement>toNode;
+            syncBooleanAttrProp(fromEl, toEl, 'checked');
+            syncBooleanAttrProp(fromEl, toEl, 'disabled');
             if (!toEl.hasAttribute('value')) {
                 fromEl.removeAttribute('value');
             } else {
