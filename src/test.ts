@@ -18,7 +18,9 @@ class List {
             <label ondblclick=${() => this.app.send('EDIT', { index })}>${item.title}</label>
             <button class="destroy" onclick=${this.destory(index)}></button>
             </div>
-            <input class="edit" type="text" value="${item.title}" onkeydown=${this.update(index)} onblur=${this.update(index)} />
+            <input class="edit"
+                type="text" value="${item.title}"
+                onkeydown=${this.update(index)} onblur=${this.update(index)} />
         </li>`)}
         </ul>
         `;
