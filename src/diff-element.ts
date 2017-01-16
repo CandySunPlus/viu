@@ -1,3 +1,5 @@
+import events from './events';
+
 enum NodeType {
     ELEMENT_NODE = 1,
     TEXT_NODE = 3,
@@ -8,16 +10,45 @@ const XHTML_NS = 'http://www.w3.org/1999/xhtml';
 
 const SPECIAL_NODE_NAME = ['OPTION', 'INPUT', 'TEXTAREA', 'SELECT'];
 
-export default function diffNode(oldNode: Node, newNode: Node) {
-    if (oldNode !== newNode) {
-        modifyNode(oldNode, newNode);
+export default function diffNode(oldNode: Node, newNode: Node, childrenOnly = true) {
+    let modifiedNode = oldNode;
+
+    if (!childrenOnly) {
+        if (modifiedNode.nodeType === NodeType.ELEMENT_NODE) {
+            if (newNode.nodeType === NodeType.ELEMENT_NODE) {
+                if (oldNode.nodeName !== newNode.nodeName) {
+                    modifiedNode = moveChildren(<Element>oldNode, createElementNS(newNode.nodeName, newNode.namespaceURI));
+                }
+            } else {
+                modifiedNode = newNode;
+            }
+        } else if ([NodeType.TEXT_NODE, NodeType.COMMENT_NODE].indexOf(modifiedNode.nodeType) >= 0) {
+            if (newNode.nodeType === modifiedNode.nodeType) {
+                modifiedNode.nodeValue = newNode.nodeValue;
+                return modifiedNode;
+            } else {
+                modifiedNode = newNode;
+            }
+        }
+    }
+
+    if (modifiedNode !== newNode) {
+        modifyNode(modifiedNode, newNode, childrenOnly);
+    }
+
+    if (!childrenOnly && modifiedNode !== oldNode && oldNode.parentNode) {
+        oldNode.parentNode.replaceChild(modifiedNode, oldNode);
     }
 
     return oldNode;
 }
 
-function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
+function modifyNode(fromNode: Node, toNode: Node, childrenOnly = false) {
     if (toNode === fromNode) { return; }
+
+    if (!childrenOnly) {
+        modifyElAttrs(<Element>fromNode, <Element>toNode);
+    }
 
     if (fromNode.nodeName !== 'TEXTAREA') {
         let currentToNodeChild = toNode.firstChild,
@@ -36,7 +67,6 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = true) {
                 if (currentFromNodeChild.nodeType === currentToNodeChild.nodeType) {
                     if (currentFromNodeChild.nodeType === NodeType.ELEMENT_NODE) {
                         if (currentFromNodeChild.nodeName === currentToNodeChild.nodeName) {
-                            modifyElAttrs(<Element>currentFromNodeChild, <Element>currentToNodeChild);
                             modifyNode(currentFromNodeChild, currentToNodeChild);
                             currentToNodeChild = nextToNodeChild;
                             currentFromNodeChild = nextFromNodeChild;
@@ -150,6 +180,14 @@ function modifyElAttrs(fromEl: Element, toEl: Element) {
 
         if (fromAttrValue !== attrValue) {
             setAttribute(fromEl, attr, attrValue);
+        }
+    }
+
+    for (let eventName of events) {
+        if (toEl[eventName]) {
+            fromEl[eventName] = toEl[eventName];
+        } else if (fromEl[eventName]) {
+            fromEl[eventName] = undefined; // unbind event
         }
     }
 }

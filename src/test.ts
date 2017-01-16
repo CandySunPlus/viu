@@ -12,16 +12,32 @@ class List {
     public render(list: any[]) {
         return v`
         <ul class="todo-list">
-            ${list.map((item, index) => v`<li class="${item.checked ? 'completed' : ''}">
+            ${list.map((item, index) => v`<li class="${item.checked ? 'completed' : ''} ${item.editing ? 'editing' : ''}">
             <div class="view">
             <input type="checkbox" class="toggle" ${item.checked ? 'checked' : ''} onchange=${this.toggleItem(index)} />
-            <label>${item.title}</label>
+            <label ondblclick=${() => this.app.send('EDIT', { index })}>${item.title}</label>
             <button class="destroy" onclick=${this.destory(index)}></button>
             </div>
-            <input class="edit" type="text" value="what">
+            <input class="edit" type="text" value="${item.title}" onkeydown=${this.update(index)} onblur=${this.update(index)} />
         </li>`)}
         </ul>
         `;
+    }
+
+    private update(index) {
+        return (evt: Event) => {
+            let target = <HTMLInputElement>evt.currentTarget;
+            if (evt.type === 'keydown') {
+                let keyBoardEvt = <KeyboardEvent> evt;
+                if (keyBoardEvt.keyCode === 13 && target.value) {
+                    this.app.send('UPDATE', { index,  title: target.value});
+                } else if (keyBoardEvt.keyCode === 27) {
+                    this.app.send('CANCEL_EDIT', { index });
+                }
+            } else if (evt.type === 'blur') {
+                this.app.send('UPDATE', { index,  title: target.value});
+            }
+        };
     }
 
     private destory = (index) => {
@@ -41,6 +57,7 @@ class App implements IAPP {
     private data = {
         list: [{
             title: '这是一条已完成的',
+            editing: false,
             checked: true
         }],
         name: '',
@@ -76,6 +93,22 @@ class App implements IAPP {
             this.setData('list', list);
             this.setData('name', '');
         },
+        EDIT: (action) => {
+            let list = this.data.list;
+            list[action.index].editing = true;
+            this.setData('list', list);
+        },
+        CANCEL_EDIT: (action) => {
+            let list = this.data.list;
+            list[action.index].editing = false;
+            this.setData('list', list);
+        },
+        UPDATE: (action) => {
+            let list = this.data.list;
+            list[action.index].editing = false;
+            list[action.index].title = action.title;
+            this.setData('list', list);
+        },
         FILTER: (action) => {
             this.setData('filter', action.filter);
         },
@@ -90,11 +123,16 @@ class App implements IAPP {
     }
 
     public send(actionType: string, action?: any) {
-        this.reducers[actionType].call(this, action);
+        if (this.reducers[actionType]) {
+            console.log('action dispatched: ', actionType, action ? action : null);
+            this.reducers[actionType].call(this, action);
+        } else {
+            throw new Error(`cannot find reducer for action: ${actionType}`);
+        }
     }
 
-    public render() {
-        return v`
+    public render()  {
+        return v `
         <section class="todoapp">
         <header class="header">
         <h1>todos</h1>
@@ -156,6 +194,7 @@ class App implements IAPP {
             this.send('INSERT', {
                 item: {
                     title: this.data.name,
+                    editing: false,
                     checked: false
                 }
             });
@@ -176,7 +215,7 @@ class App implements IAPP {
     private setData(key: string, value: any) {
         this.data[key] = value;
         let newEl = this.render();
-        diffNode(this.el, newEl);
+        diffNode(this.el, newEl, false);
     }
 }
 

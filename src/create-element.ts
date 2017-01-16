@@ -1,5 +1,6 @@
 import SVG_TAGS from './svg-tags';
 import { INodeAttrs } from './hyper-parser';
+import events from './events';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const XLINK_NS = 'http://www.w3.org/1999/xlink';
 
@@ -56,7 +57,7 @@ export default function createElement(tagName: string, attrs: INodeAttrs, childr
                 }
             }
         } else {
-            if (attrName.indexOf('on') === 0) {
+            if (events.indexOf(attrName) >= 0) {
                 element[attrName] = attrValue;
             } else {
                 element.setAttribute(attrName, attrValue);
