@@ -1,18 +1,16 @@
 import '../node_modules/todomvc-common/base.css';
 import '../node_modules/todomvc-app-css/index.css';
-import v from './v';
-import diffNode from './diff-element';
+import { classList } from '../src/utils';
+import { Container } from '../src/container';
+import v from '../src/v';
 
-interface IAPP {
-    send: (actionType: string, action: any) => void;
-}
 
 class List {
-    constructor(private app: IAPP) { }
+    constructor(private app: any) { }
     public render(list: any[]) {
         return v`
         <ul class="todo-list">
-            ${list.map((item, index) => v`<li class="${item.checked ? 'completed' : ''} ${item.editing ? 'editing' : ''}">
+            ${list.map((item, index) => v`<li class="${classList({ completed: item.checked, editing: item.editing })}">
             <div class="view">
             <input type="checkbox" class="toggle" ${item.checked ? 'checked' : ''} onchange=${this.toggleItem(index)} />
             <label ondblclick=${() => this.app.send('EDIT', { index })}>${item.title}</label>
@@ -55,20 +53,26 @@ class List {
     }
 }
 
-class App implements IAPP {
-    private data = {
-        list: [{
-            title: '这是一条已完成的',
-            editing: false,
-            checked: true
-        }],
-        name: '',
-        filter: 'ALL'
-    };
-    private el: Element;
-    private listCmp: List;
+enum FilterType {
+    ALL,
+    COMPLETED,
+    ACTIVE
+};
 
-    private reducers = {
+interface TodoItem {
+    title: string;
+    editing: boolean;
+    checked: boolean;
+}
+
+interface TodoData {
+    list: TodoItem[];
+    name: string;
+    filter: FilterType;
+}
+
+class App extends Container<TodoData> {
+    protected reducers = {
         TOGGLE: (action) => {
             let list = this.data.list;
             list[action.index].checked = !list[action.index].checked;
@@ -120,17 +124,11 @@ class App implements IAPP {
         }
     };
 
-    constructor() {
-        this.listCmp = new List(this);
-    }
+    private listCmp: List;
 
-    public send(actionType: string, action?: any) {
-        if (this.reducers[actionType]) {
-            console.log('action dispatched: ', actionType, action ? action : null);
-            this.reducers[actionType].call(this, action);
-        } else {
-            throw new Error(`cannot find reducer for action: ${actionType}`);
-        }
+    public constructor(initData: TodoData) {
+        super(initData);
+        // this.listCmp = new List<TodoData>(this);
     }
 
     public render()  {
@@ -143,16 +141,20 @@ class App implements IAPP {
         value="${this.data.name}" type="text" oninput=${this.oninput} onkeydown=${this.insert} />
         </header>
         <section class="main">
-        <input class="toggle-all" ${this.filtedTodos('ACTIVE').length === 0 ? 'checked' : ''}  onchange=${this.toggleAll} type="checkbox">
+        <input class="toggle-all" ${this.filtedTodos(FilterType.ACTIVE).length === 0 ? 'checked' : ''}
+            onchange=${this.toggleAll} type="checkbox" />
         <label for="toggle-all">Mark all as complete</label>
         ${this.listCmp.render(this.filtedTodos())}
         </section>
         <footer class="footer">
-        <span class="todo-count"><strong>${this.filtedTodos('ACTIVE').length}</strong> item left</span>
+        <span class="todo-count"><strong>${this.filtedTodos(FilterType.ACTIVE).length}</strong> item left</span>
         <ul class="filters">
-            <li><a class="${this.isFilter('ALL') ? 'selected' : ''}" onclick=${this.filter('ALL')} href="#">All</a></li>
-            <li><a class="${this.isFilter('ACTIVE') ? 'selected' : ''}" onclick=${this.filter('ACTIVE')} href="#">Active</a></li>
-            <li><a class="${this.isFilter('COMPLETED') ? 'selected' : ''}" onclick=${this.filter('COMPLETED')} href="#">Completed</a></li>
+            <li><a class="${this.isFilter(FilterType.ALL) ? 'selected' : ''}"
+                onclick=${this.filter(FilterType.ALL)} href="#">All</a></li>
+            <li><a class="${this.isFilter(FilterType.ACTIVE) ? 'selected' : ''}"
+                onclick=${this.filter(FilterType.ACTIVE)} href="#">Active</a></li>
+            <li><a class="${this.isFilter(FilterType.COMPLETED) ? 'selected' : ''}"
+                onclick=${this.filter(FilterType.COMPLETED)} href="#">Completed</a></li>
         </ul>
         <button class="clear-completed" onclick=${this.clearCompleted}>Clear completed</button>
         </footer>
@@ -160,16 +162,11 @@ class App implements IAPP {
         `;
     }
 
-    public mount(container: Element) {
-        this.el = this.render();
-        container.appendChild(this.el);
-    }
-
     private clearCompleted = () => {
         this.send('CLEAR_COMPLETED');
     }
 
-    private isFilter(filter: string): boolean {
+    private isFilter(filter: FilterType): boolean {
         return this.data.filter === filter;
     }
 
@@ -178,14 +175,14 @@ class App implements IAPP {
         this.send('TOGGLE_ALL', { checked: el.checked });
     }
 
-    private filtedTodos(filter?: string): any[] {
+    private filtedTodos(filter?: FilterType): any[] {
         filter = filter ? filter : this.data.filter;
         return this.data.list.filter(item => {
-            if (filter === 'ALL') {
+            if (filter === FilterType.ALL) {
                 return true;
-            } else if (filter === 'ACTIVE') {
+            } else if (filter === FilterType.ACTIVE) {
                 return !item.checked;
-            } else if (filter === 'COMPLETED') {
+            } else if (filter === FilterType.COMPLETED) {
                 return item.checked;
             }
         });
@@ -208,18 +205,23 @@ class App implements IAPP {
     }
 
 
-    private filter = (filter: string) => {
+    private filter = (filter: FilterType) => {
         return () => {
             this.send('FILTER', { filter });
         };
     }
-
-    private setData(key: string, value: any) {
-        this.data[key] = value;
-        let newEl = this.render();
-        diffNode(this.el, newEl, false);
-    }
 }
 
-const app = new App();
-app.mount(document.querySelector('.app-container'));
+
+const initData = {
+    list: [{
+        title: '这是一条已完成的',
+        editing: false,
+        checked: true
+    }],
+    name: '',
+    filter: FilterType.ALL
+};
+
+const app = new App(initData);
+app.mountTo(document.querySelector('.app-container'));
