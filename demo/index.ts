@@ -89,7 +89,7 @@ class App extends Container<ITodoData> {
         <input class="toggle-all" ${this.filtedTodos(FilterType.ACTIVE).length === 0 ? 'checked' : ''}
             onchange=${this.toggleAll} type="checkbox" />
         <label for="toggle-all">Mark all as complete</label>
-        ${this.listCmp.render(this.data.list)}
+        ${this.listCmp.render(this.filtedTodos())}
         </section>
         <footer class="footer">
         <span class="todo-count"><strong>${this.filtedTodos(FilterType.ACTIVE).length}</strong> item left</span>
