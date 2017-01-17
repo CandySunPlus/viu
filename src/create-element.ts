@@ -30,6 +30,7 @@ function appendChild(element: Element, children: Element[]) {
 
 export default function createElement(tagName: string, attrs: INodeAttrs, children: Element[]): Element {
     let element: Element, namespace = null;
+
     if (SVG_TAGS.indexOf(tagName) >= 0) {
         attrs['namespace'] = SVG_NS;
     }

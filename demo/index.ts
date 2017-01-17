@@ -2,56 +2,8 @@ import '../node_modules/todomvc-common/base.css';
 import '../node_modules/todomvc-app-css/index.css';
 import { classList } from '../src/utils';
 import { Container } from '../src/container';
+import { ITodoItem, TodoList } from './list';
 import v from '../src/v';
-
-
-class List {
-    constructor(private app: any) { }
-    public render(list: any[]) {
-        return v`
-        <ul class="todo-list">
-            ${list.map((item, index) => v`<li class="${classList({ completed: item.checked, editing: item.editing })}">
-            <div class="view">
-            <input type="checkbox" class="toggle" ${item.checked ? 'checked' : ''} onchange=${this.toggleItem(index)} />
-            <label ondblclick=${() => this.app.send('EDIT', { index })}>${item.title}</label>
-            <button class="destroy" onclick=${this.destory(index)}></button>
-            </div>
-            <input class="edit"
-                type="text" value="${item.title}"
-                onkeydown=${this.update(index)} onblur=${this.update(index)} />
-        </li>`)}
-        </ul>
-        `;
-    }
-
-    private update(index) {
-        return (evt: Event) => {
-            let target = <HTMLInputElement>evt.currentTarget;
-            if (evt.type === 'keydown') {
-                let keyBoardEvt = <KeyboardEvent> evt;
-                if (keyBoardEvt.keyCode === 13 && target.value) {
-                    this.app.send('UPDATE', { index,  title: target.value});
-                } else if (keyBoardEvt.keyCode === 27) {
-                    this.app.send('CANCEL_EDIT', { index });
-                }
-            } else if (evt.type === 'blur') {
-                this.app.send('UPDATE', { index,  title: target.value});
-            }
-        };
-    }
-
-    private destory = (index) => {
-        return () => {
-            this.app.send('DESTORY', { index });
-        };
-    }
-
-    private toggleItem = (index) => {
-        return () => {
-            this.app.send('TOGGLE', { index });
-        };
-    }
-}
 
 enum FilterType {
     ALL,
@@ -59,19 +11,13 @@ enum FilterType {
     ACTIVE
 };
 
-interface TodoItem {
-    title: string;
-    editing: boolean;
-    checked: boolean;
-}
-
-interface TodoData {
-    list: TodoItem[];
+interface ITodoData {
+    list: ITodoItem[];
     name: string;
     filter: FilterType;
 }
 
-class App extends Container<TodoData> {
+class App extends Container<ITodoData> {
     protected reducers = {
         TOGGLE: (action) => {
             let list = this.data.list;
@@ -124,11 +70,10 @@ class App extends Container<TodoData> {
         }
     };
 
-    private listCmp: List;
-
-    public constructor(initData: TodoData) {
+    private listCmp: TodoList;
+    public constructor(initData: ITodoData) {
         super(initData);
-        // this.listCmp = new List<TodoData>(this);
+        this.listCmp = this.createComponent(TodoList);
     }
 
     public render()  {
@@ -144,7 +89,7 @@ class App extends Container<TodoData> {
         <input class="toggle-all" ${this.filtedTodos(FilterType.ACTIVE).length === 0 ? 'checked' : ''}
             onchange=${this.toggleAll} type="checkbox" />
         <label for="toggle-all">Mark all as complete</label>
-        ${this.listCmp.render(this.filtedTodos())}
+        ${this.listCmp.render(this.data.list)}
         </section>
         <footer class="footer">
         <span class="todo-count"><strong>${this.filtedTodos(FilterType.ACTIVE).length}</strong> item left</span>

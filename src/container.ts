@@ -1,4 +1,5 @@
 import diffNode from './diff-element';
+import { Component } from './component';
 
 export interface IContainer {
     send: (actionType: string, action: any) => void;
@@ -24,6 +25,10 @@ export abstract class Container<T> {
         } else {
             throw new Error(`cannot find reducer for action: ${actionType}`);
         }
+    }
+
+    public createComponent(component: any) {
+        return new component(this.send.bind(this));
     }
 
     public mountTo(el: Element) {
