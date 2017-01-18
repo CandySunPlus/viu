@@ -58,7 +58,7 @@ export default function createElement(tagName: string, attrs: INodeAttrs, childr
                 }
             }
         } else {
-            if (events.indexOf(attrName) >= 0) {
+            if (events.indexOf(attrName) >= 0 || attrName === 'ref') {
                 element[attrName] = attrValue;
             } else {
                 element.setAttribute(attrName, attrValue);

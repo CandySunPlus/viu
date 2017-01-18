@@ -9,21 +9,32 @@ export interface ITodoItem {
 }
 
 export class TodoList extends Component {
+    private editInputs: HTMLInputElement[] = [];
     public render(list: ITodoItem[]) {
         return v`
         <ul class="todo-list">
             ${list.map((item, index) => v`<li class="${classList({ completed: item.checked, editing: item.editing })}">
             <div class="view">
             <input type="checkbox" class="toggle" ${item.checked ? 'checked' : ''} onchange=${this.toggleItem(index)} />
-            <label ondblclick=${() => this.send('EDIT', { index })}>${item.title}</label>
+            <label ondblclick=${this.toggleEditState(index)}>${item.title}</label>
             <button class="destroy" onclick=${this.destory(index)}></button>
             </div>
             <input class="edit"
+                ref=${input => this.editInputs[index] = input}
                 type="text" value="${item.title}"
                 onkeydown=${this.update(index)} onblur=${this.update(index)} />
         </li>`)}
         </ul>
         `;
+    }
+
+    private toggleEditState(index) {
+        return (e: Event) => {
+            this.send('EDIT', { index });
+            this.editInputs[index].focus();
+            let valLen = this.editInputs[index].value.length;
+            this.editInputs[index].setSelectionRange(valLen, valLen);
+        };
     }
 
     private update(index) {

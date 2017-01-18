@@ -36,11 +36,15 @@ export default function diffNode(oldNode: Node, newNode: Node, childrenOnly = tr
         modifyNode(modifiedNode, newNode, childrenOnly);
     }
 
+
     if (!childrenOnly && modifiedNode !== oldNode && oldNode.parentNode) {
         oldNode.parentNode.replaceChild(modifiedNode, oldNode);
     }
 
-    return oldNode;
+    if (modifiedNode['ref'] && typeof modifiedNode['ref'] === 'function') {
+        modifiedNode['ref'](modifiedNode);
+    }
+    return modifiedNode;
 }
 
 function modifyNode(fromNode: Node, toNode: Node, childrenOnly = false) {
@@ -67,6 +71,9 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = false) {
                 if (currentFromNodeChild.nodeType === currentToNodeChild.nodeType) {
                     if (currentFromNodeChild.nodeType === NodeType.ELEMENT_NODE) {
                         if (currentFromNodeChild.nodeName === currentToNodeChild.nodeName) {
+                            if (currentFromNodeChild['ref'] && typeof currentFromNodeChild['ref'] === 'function') {
+                                currentFromNodeChild['ref'](currentFromNodeChild);
+                            }
                             modifyNode(currentFromNodeChild, currentToNodeChild);
                             currentToNodeChild = nextToNodeChild;
                             currentFromNodeChild = nextFromNodeChild;
@@ -86,6 +93,9 @@ function modifyNode(fromNode: Node, toNode: Node, childrenOnly = false) {
                 currentFromNodeChild = nextFromNodeChild;
             }
             fromNode.appendChild(currentToNodeChild);
+            if (currentToNodeChild['ref'] && typeof currentToNodeChild['ref'] === 'function') {
+                currentToNodeChild['ref'](currentToNodeChild);
+            }
             currentToNodeChild = nextToNodeChild;
         }
 
