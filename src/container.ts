@@ -1,8 +1,12 @@
 import diffNode from './diff-element';
 import { Component } from './component';
 
+export interface ISend {
+    (actionType: string, action: any): void;
+}
+
 export interface IContainer {
-    send: (actionType: string, action: any) => void;
+    send: ISend;
 }
 
 export abstract class Container<T> {
@@ -18,6 +22,8 @@ export abstract class Container<T> {
 
     public abstract render(): Element;
 
+    public didMounted() {}
+
     public send(actionType: string, action?: any) {
         if (this.reducers[actionType]) {
             console.log('action dispatched: ', actionType, action ? action : null);
@@ -27,13 +33,14 @@ export abstract class Container<T> {
         }
     }
 
-    public createComponent(component: any) {
+    public createComponent<T>(component: { new(send: ISend): T }): T {
         return new component(this.send.bind(this));
     }
 
     public mountTo(el: Element) {
         this.el = this.render();
         el.appendChild(this.el);
+        this.didMounted();
     }
 
     protected setData(key: string, value: any) {
@@ -43,6 +50,7 @@ export abstract class Container<T> {
     }
 
     get data(): T {
-        return JSON.parse(JSON.stringify(this._data));
+        return this._data;
+        // return JSON.parse(JSON.stringify(this._data));
     }
 }

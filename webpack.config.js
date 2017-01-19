@@ -3,7 +3,8 @@ const webpack = require('webpack');
 
 module.exports = {
     entry: {
-        demo: './demo/index.ts'
+        demo: './demo/index.ts',
+        dbmon: './dbmon/index.ts'
     },
     output: {
         path: path.join(__dirname, 'dist'),
@@ -13,11 +14,13 @@ module.exports = {
     resolve: {
         extensions: ['', '.ts', '.js']
     },
-    plugins: [new webpack.optimize.UglifyJsPlugin({
-        compress: {
-            warnings: false
-        }
-    })],
+    plugins: [
+        // new webpack.optimize.UglifyJsPlugin({
+        // compress: {
+        //     warnings: false
+        // }
+        // })
+    ],
     module: {
         loaders: [{
             test: /\.ts$/,
