@@ -26,7 +26,7 @@ export abstract class Container<T> {
 
     public send(actionType: string, action?: any) {
         if (this.reducers[actionType]) {
-            console.log('action dispatched: ', actionType, action ? action : null);
+            // console.log('action dispatched: ', actionType, action ? action : null);
             this.reducers[actionType].call(this, action);
         } else {
             throw new Error(`cannot find reducer for action: ${actionType}`);

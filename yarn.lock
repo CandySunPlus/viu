@@ -1503,6 +1503,10 @@ pbkdf2-compat@2.0.1:
   version "2.0.1"
   resolved "http://registry.npm.taobao.org/pbkdf2-compat/download/pbkdf2-compat-2.0.1.tgz#b6e0c8fa99494d94e0511575802a59a5c142f288"
 
+perf-monitor@^0.3.0:
+  version "0.3.0"
+  resolved "http://r.npm.sankuai.com/perf-monitor/download/perf-monitor-0.3.0.tgz#a4547db8bc45b9d3f01bde3ba23cf31d732c719a"
+
 pinkie-promise@^2.0.0:
   version "2.0.1"
   resolved "http://registry.npm.taobao.org/pinkie-promise/download/pinkie-promise-2.0.1.tgz#2135d6dfa7a358c069ac9b178776288228450ffa"

@@ -3,6 +3,7 @@ import v from '../src/v';
 import { Container } from '../src/container';
 import { Component } from '../src/component';
 import { Query, EMPTY_QUERY, Database, DatabaseList } from './data';
+import {startFPSMonitor, startMemMonitor, initProfiler, startProfile, endProfile} from 'perf-monitor';
 
 
 class Popover extends Component {
@@ -15,10 +16,11 @@ class Popover extends Component {
 }
 
 class QueryCmp extends Component {
+    private popoverCmp: Popover = this.createComponent(Popover);
     public render(query: Query) {
         return v` <td class="${this.queryClasses(query.elapsed)}">
         ${this.formatElapsed(query.elapsed)}
-        ${this.createComponent(Popover).render(query.query)}
+        ${this.popoverCmp.render(query.query)}
         </td> `;
     }
 
@@ -50,9 +52,9 @@ class QueryCmp extends Component {
 }
 
 class DatabaseCmp extends Component {
-    private emptyQuery: QueryCmp = this.createComponent(QueryCmp);
+    private queryCmp: QueryCmp = this.createComponent(QueryCmp);
+    private emptyQuery = this.queryCmp.render(EMPTY_QUERY);
     public render(db: Database) {
-        console.log(db);
         let topFiveQueries = db.getTopFiveQueries();
         let count = db.queries.length;
 
@@ -66,9 +68,9 @@ class DatabaseCmp extends Component {
     private buildQueryRow(querys: Query[]) {
         return querys.map(query => {
             if (query !== EMPTY_QUERY) {
-                return this.createComponent(QueryCmp).render(query);
+                return this.queryCmp.render(query);
             } else {
-                return this.emptyQuery.render(EMPTY_QUERY);
+                return this.emptyQuery;
             }
         });
     }
@@ -93,23 +95,32 @@ class App extends Container<IAppData> {
             this.setData('dbs', action.dbs);
         }
     };
+    private databaseCmp: DatabaseCmp = this.createComponent(DatabaseCmp);
     private databaseList = new DatabaseList(50);
     public render() {
         return v`
         <div>
             <table class="table table-striped latest-data">
-                <tbody>${this.data.dbs.map(db => this.createComponent(DatabaseCmp).render(db))}</tbody>
+                <tbody>${this.data.dbs.map(db => this.databaseCmp.render(db))}</tbody>
             </table>
         </div>
         `;
     }
     public didMounted() {
+        startFPSMonitor();
+        startMemMonitor();
+        initProfiler('data update');
+        initProfiler('view update');
         this.update();
     }
 
     private update = () => {
+        startProfile('data update');
         this.databaseList.randomUpdate(0.5);
+        endProfile('data update');
+        startProfile('view update');
         this.send('UPDATE', { dbs: this.databaseList.dbs });
+        endProfile('view update');
         requestAnimationFrame(this.update);
     }
 }
