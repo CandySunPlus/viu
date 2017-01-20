@@ -1,5 +1,5 @@
 import './styles.css';
-import v from '../src/v';
+import * as createElement from '../src/create-element';
 import { Container } from '../src/container';
 import { Component } from '../src/component';
 import { Query, EMPTY_QUERY, Database, DatabaseList } from './data';
@@ -8,20 +8,20 @@ import {startFPSMonitor, startMemMonitor, initProfiler, startProfile, endProfile
 
 class Popover extends Component {
     public render(query: string) {
-        return v`<div class="popover left">
-        <div class="popover-content">${query}</div>
-        <div class="arrow"></div>
-        </div>`;
+        return <div className="popover left">
+        <div className="popover-content">{query}</div>
+        <div className="arrow"></div>
+        </div>;
     }
 }
 
 class QueryCmp extends Component {
     private popoverCmp: Popover = this.createComponent(Popover);
     public render(query: Query) {
-        return v` <td class="${this.queryClasses(query.elapsed)}">
-        ${this.formatElapsed(query.elapsed)}
-        ${this.popoverCmp.render(query.query)}
-        </td> `;
+        return  <td className={this.queryClasses(query.elapsed)}>
+        {this.formatElapsed(query.elapsed)}
+        {this.popoverCmp.render(query.query)}
+        </td>;
     }
 
     private formatElapsed(v: number) {
@@ -53,24 +53,23 @@ class QueryCmp extends Component {
 
 class DatabaseCmp extends Component {
     private queryCmp: QueryCmp = this.createComponent(QueryCmp);
-    private emptyQuery = this.queryCmp.render(EMPTY_QUERY);
     public render(db: Database) {
         let topFiveQueries = db.getTopFiveQueries();
         let count = db.queries.length;
 
-        return v`<tr>
-        <td class="dbname">${db.name}</td>
-        <td class="query-count"><span class="${this.counterClasses(count)}">${count}</span></td>
-        ${this.buildQueryRow(topFiveQueries)}
-        </tr>`;
+        return <tr>
+        <td className="dbname">{db.name}</td>
+        <td className="query-count"><span className={this.counterClasses(count)}>{count}</span></td>
+        {this.buildQueryRow(topFiveQueries)}
+        </tr>;
     }
 
-    private buildQueryRow(querys: Query[]) {
-        return querys.map(query => {
+    private buildQueryRow(queries: Query[]) {
+        return queries.map(query => {
             if (query !== EMPTY_QUERY) {
                 return this.queryCmp.render(query);
             } else {
-                return this.emptyQuery;
+                return this.queryCmp.render(EMPTY_QUERY);
             }
         });
     }
@@ -98,19 +97,19 @@ class App extends Container<IAppData> {
     private databaseCmp: DatabaseCmp = this.createComponent(DatabaseCmp);
     private databaseList = new DatabaseList(50);
     public render() {
-        return v`
-        <div>
-            <table class="table table-striped latest-data">
-                <tbody>${this.data.dbs.map(db => this.databaseCmp.render(db))}</tbody>
-            </table>
-        </div>
-        `;
+        return <div>
+                <table className="table table-striped latest-data">
+                <tbody>{this.data.dbs.map(db => this.databaseCmp.render(db))}</tbody>
+                </table>
+                </div>;
     }
     public didMounted() {
         startFPSMonitor();
         startMemMonitor();
         initProfiler('data update');
         initProfiler('view update');
+        initProfiler('parse and render');
+        initProfiler('diff node');
         this.update();
     }
 

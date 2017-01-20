@@ -2,7 +2,9 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "typeRoots": ["./src/typings"]
+        "typeRoots": ["./src/typings"],
+        "jsx": "react",
+        "reactNamespace": "createElement"
     },
     "exclude": [
         "node_modules"

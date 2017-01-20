@@ -10,26 +10,27 @@ function isNSAttr(attrName: string): boolean {
 
 function appendChild(element: Element, children: Element[]) {
     if (!Array.isArray(children)) {
-        return;
+        children = [children];
     }
     for (let node of children) {
         if (Array.isArray(node)) {
             appendChild(element, node);
             continue;
         }
-        if (Object.prototype.toString.call(node) === '[object String]') {
+        if (node && node.nodeType) {
+            element.appendChild(node);
+        } else if (node !== undefined && node !== null) {
             if (!element.lastChild || element.lastChild.nodeName !== '#text') {
                 element.appendChild(document.createTextNode(''));
             }
             element.lastChild.nodeValue += node;
-        } else if (node && node.nodeType) {
-            element.appendChild(node);
         }
     }
 }
 
-export default function createElement(tagName: string, attrs: INodeAttrs, children: Element[]): Element {
+export function createElement(tagName: string, attrs: INodeAttrs, ...children: Element[]): Element {
     let element: Element, namespace = null;
+    attrs = attrs ? attrs : {};
 
     if (SVG_TAGS.indexOf(tagName) >= 0) {
         attrs['namespace'] = SVG_NS;
@@ -61,6 +62,11 @@ export default function createElement(tagName: string, attrs: INodeAttrs, childr
             if (events.indexOf(attrName) >= 0 || attrName === 'ref') {
                 element[attrName] = attrValue;
             } else {
+                if (attrName === 'className') {
+                    attrName = 'class';
+                } else if (attrName === 'htmlFor') {
+                    attrName = 'for';
+                }
                 element.setAttribute(attrName, attrValue);
             }
         }

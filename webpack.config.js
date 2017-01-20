@@ -4,7 +4,7 @@ const webpack = require('webpack');
 module.exports = {
     entry: {
         demo: './demo/index.ts',
-        dbmon: './dbmon/index.ts'
+        dbmon: './dbmon/index.tsx'
     },
     output: {
         path: path.join(__dirname, 'dist'),
@@ -23,7 +23,7 @@ module.exports = {
     ],
     module: {
         loaders: [{
-            test: /\.ts$/,
+            test: /\.ts/,
             loader: 'ts',
             exclude: /node_modules/
         }, {

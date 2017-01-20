@@ -50,141 +50,183 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	__webpack_require__(13);
-	__webpack_require__(15);
+	__webpack_require__(1);
+	var create_element_1 = __webpack_require__(5);
 	var container_1 = __webpack_require__(8);
-	var list_1 = __webpack_require__(17);
-	var v_1 = __webpack_require__(19);
-	var FilterType;
-	(function (FilterType) {
-	    FilterType[FilterType["ALL"] = 0] = "ALL";
-	    FilterType[FilterType["COMPLETED"] = 1] = "COMPLETED";
-	    FilterType[FilterType["ACTIVE"] = 2] = "ACTIVE";
-	})(FilterType || (FilterType = {}));
-	;
-	var App = (function (_super) {
-	    __extends(App, _super);
-	    function App(initData) {
-	        var _this = _super.call(this, initData) || this;
-	        _this.reducers = {
-	            TOGGLE: function (action) {
-	                var list = _this.data.list;
-	                list[action.index].checked = !list[action.index].checked;
-	                _this.setData('list', list);
-	            },
-	            TOGGLE_ALL: function (action) {
-	                var list = _this.data.list.map(function (item) {
-	                    item.checked = action.checked;
-	                    return item;
-	                });
-	                _this.setData('list', list);
-	            },
-	            INPUTNEW: function (action) {
-	                _this.setData('name', action.name);
-	            },
-	            DESTORY: function (action) {
-	                var list = _this.data.list;
-	                list.splice(action.index, 1);
-	                _this.setData('list', list);
-	            },
-	            INSERT: function (action) {
-	                var list = _this.data.list;
-	                list.push(action.item);
-	                _this.setData('list', list);
-	                _this.setData('name', '');
-	            },
-	            EDIT: function (action) {
-	                var list = _this.data.list;
-	                list[action.index].editing = true;
-	                _this.setData('list', list);
-	            },
-	            CANCEL_EDIT: function (action) {
-	                var list = _this.data.list;
-	                list[action.index].editing = false;
-	                _this.setData('list', list);
-	            },
-	            UPDATE: function (action) {
-	                var list = _this.data.list;
-	                list[action.index].editing = false;
-	                list[action.index].title = action.title;
-	                _this.setData('list', list);
-	            },
-	            FILTER: function (action) {
-	                _this.setData('filter', action.filter);
-	            },
-	            CLEAR_COMPLETED: function () {
-	                var list = _this.data.list.filter(function (item) { return !item.checked; });
-	                _this.setData('list', list);
-	            }
-	        };
-	        _this.clearCompleted = function () {
-	            _this.send('CLEAR_COMPLETED');
-	        };
-	        _this.toggleAll = function (evt) {
-	            var el = evt.currentTarget;
-	            _this.send('TOGGLE_ALL', { checked: el.checked });
-	        };
-	        _this.insert = function (evt) {
-	            if (_this.data.name && evt.keyCode === 13) {
-	                _this.send('INSERT', {
-	                    item: {
-	                        title: _this.data.name,
-	                        editing: false,
-	                        checked: false
-	                    }
-	                });
-	            }
-	        };
-	        _this.oninput = function (evt) {
-	            _this.send('INPUTNEW', { name: evt.currentTarget.value });
-	        };
-	        _this.filter = function (filter) {
-	            return function () {
-	                _this.send('FILTER', { filter: filter });
-	            };
-	        };
-	        _this.listCmp = _this.createComponent(list_1.TodoList);
+	var component_1 = __webpack_require__(11);
+	var data_1 = __webpack_require__(12);
+	var perf_monitor_1 = __webpack_require__(10);
+	var Popover = (function (_super) {
+	    __extends(Popover, _super);
+	    function Popover() {
+	        return _super.apply(this, arguments) || this;
+	    }
+	    Popover.prototype.render = function (query) {
+	        return create_element_1.default.createElement("div", { className: "popover left" },
+	            create_element_1.default.createElement("div", { className: "popover-content" }, query),
+	            create_element_1.default.createElement("div", { className: "arrow" }));
+	    };
+	    return Popover;
+	}(component_1.Component));
+	var QueryCmp = (function (_super) {
+	    __extends(QueryCmp, _super);
+	    function QueryCmp() {
+	        var _this = _super.apply(this, arguments) || this;
+	        _this.popoverCmp = _this.createComponent(Popover);
 	        return _this;
 	    }
-	    App.prototype.render = function () {
-	        return (_a = ["\n        <section class=\"todoapp\">\n        <header class=\"header\">\n        <h1>todos</h1>\n        <input class=\"new-todo\" autofocus\n        placeholder=\"What needs to be done\"\n        value=\"", "\" type=\"text\" oninput=", " onkeydown=", " />\n        </header>\n        <section class=\"main\">\n        <input class=\"toggle-all\" ", "\n            onchange=", " type=\"checkbox\" />\n        <label for=\"toggle-all\">Mark all as complete</label>\n        ", "\n        </section>\n        <footer class=\"footer\">\n        <span class=\"todo-count\"><strong>", "</strong> item left</span>\n        <ul class=\"filters\">\n            <li><a class=\"", "\"\n                onclick=", " href=\"#\">All</a></li>\n            <li><a class=\"", "\"\n                onclick=", " href=\"#\">Active</a></li>\n            <li><a class=\"", "\"\n                onclick=", " href=\"#\">Completed</a></li>\n        </ul>\n        <button class=\"clear-completed\" onclick=", ">Clear completed</button>\n        </footer>\n        </section>\n        "], _a.raw = ["\n        <section class=\"todoapp\">\n        <header class=\"header\">\n        <h1>todos</h1>\n        <input class=\"new-todo\" autofocus\n        placeholder=\"What needs to be done\"\n        value=\"", "\" type=\"text\" oninput=", " onkeydown=", " />\n        </header>\n        <section class=\"main\">\n        <input class=\"toggle-all\" ", "\n            onchange=", " type=\"checkbox\" />\n        <label for=\"toggle-all\">Mark all as complete</label>\n        ", "\n        </section>\n        <footer class=\"footer\">\n        <span class=\"todo-count\"><strong>", "</strong> item left</span>\n        <ul class=\"filters\">\n            <li><a class=\"", "\"\n                onclick=", " href=\"#\">All</a></li>\n            <li><a class=\"", "\"\n                onclick=", " href=\"#\">Active</a></li>\n            <li><a class=\"", "\"\n                onclick=", " href=\"#\">Completed</a></li>\n        </ul>\n        <button class=\"clear-completed\" onclick=", ">Clear completed</button>\n        </footer>\n        </section>\n        "], v_1.default(_a, this.data.name, this.oninput, this.insert, this.filtedTodos(FilterType.ACTIVE).length === 0 ? 'checked' : '', this.toggleAll, this.listCmp.render(this.filtedTodos()), this.filtedTodos(FilterType.ACTIVE).length, this.isFilter(FilterType.ALL) ? 'selected' : '', this.filter(FilterType.ALL), this.isFilter(FilterType.ACTIVE) ? 'selected' : '', this.filter(FilterType.ACTIVE), this.isFilter(FilterType.COMPLETED) ? 'selected' : '', this.filter(FilterType.COMPLETED), this.clearCompleted));
-	        var _a;
+	    QueryCmp.prototype.render = function (query) {
+	        return create_element_1.default.createElement("td", { className: this.queryClasses(query.elapsed) },
+	            this.formatElapsed(query.elapsed),
+	            this.popoverCmp.render(query.query));
 	    };
-	    App.prototype.isFilter = function (filter) {
-	        return this.data.filter === filter;
+	    QueryCmp.prototype.formatElapsed = function (v) {
+	        if (!v) {
+	            return '';
+	        }
+	        var str = v.toFixed(2);
+	        if (v > 60) {
+	            var minutes = Math.floor(v / 60);
+	            var comps = (v % 60).toFixed(2).split('.');
+	            var seconds = comps[0];
+	            var ms = comps[1];
+	            str = minutes + ':' + seconds + '.' + ms;
+	        }
+	        return str;
 	    };
-	    App.prototype.filtedTodos = function (filter) {
-	        filter = filter ? filter : this.data.filter;
-	        return this.data.list.filter(function (item) {
-	            if (filter === FilterType.ALL) {
-	                return true;
+	    QueryCmp.prototype.queryClasses = function (elapsed) {
+	        if (elapsed >= 10.0) {
+	            return 'Query elapsed warn_long';
+	        }
+	        else if (elapsed >= 1.0) {
+	            return 'Query elapsed warn';
+	        }
+	        return 'Query elapsed short';
+	    };
+	    return QueryCmp;
+	}(component_1.Component));
+	var DatabaseCmp = (function (_super) {
+	    __extends(DatabaseCmp, _super);
+	    function DatabaseCmp() {
+	        var _this = _super.apply(this, arguments) || this;
+	        _this.queryCmp = _this.createComponent(QueryCmp);
+	        return _this;
+	    }
+	    DatabaseCmp.prototype.render = function (db) {
+	        var topFiveQueries = db.getTopFiveQueries();
+	        var count = db.queries.length;
+	        return create_element_1.default.createElement("tr", null,
+	            create_element_1.default.createElement("td", { className: "dbname" }, db.name),
+	            create_element_1.default.createElement("td", { className: "query-count" },
+	                create_element_1.default.createElement("span", { className: this.counterClasses(count) }, count)),
+	            this.buildQueryRow(topFiveQueries));
+	    };
+	    DatabaseCmp.prototype.buildQueryRow = function (queries) {
+	        var _this = this;
+	        return queries.map(function (query) {
+	            if (query !== data_1.EMPTY_QUERY) {
+	                return _this.queryCmp.render(query);
 	            }
-	            else if (filter === FilterType.ACTIVE) {
-	                return !item.checked;
-	            }
-	            else if (filter === FilterType.COMPLETED) {
-	                return item.checked;
+	            else {
+	                return _this.queryCmp.render(data_1.EMPTY_QUERY);
 	            }
 	        });
 	    };
+	    DatabaseCmp.prototype.counterClasses = function (count) {
+	        if (count >= 20) {
+	            return 'label label-important';
+	        }
+	        else if (count >= 10) {
+	            return 'label label-warning';
+	        }
+	        return 'label label-success';
+	    };
+	    return DatabaseCmp;
+	}(component_1.Component));
+	var App = (function (_super) {
+	    __extends(App, _super);
+	    function App() {
+	        var _this = _super.apply(this, arguments) || this;
+	        _this.reducers = {
+	            UPDATE: function (action) {
+	                _this.setData('dbs', action.dbs);
+	            }
+	        };
+	        _this.databaseCmp = _this.createComponent(DatabaseCmp);
+	        _this.databaseList = new data_1.DatabaseList(50);
+	        _this.update = function () {
+	            perf_monitor_1.startProfile('data update');
+	            _this.databaseList.randomUpdate(0.5);
+	            perf_monitor_1.endProfile('data update');
+	            perf_monitor_1.startProfile('view update');
+	            _this.send('UPDATE', { dbs: _this.databaseList.dbs });
+	            perf_monitor_1.endProfile('view update');
+	            requestAnimationFrame(_this.update);
+	        };
+	        return _this;
+	    }
+	    App.prototype.render = function () {
+	        // ${this.data.dbs.map(db => this.databaseCmp.render(db))}
+	        return create_element_1.default.createElement("div", null,
+	            create_element_1.default.createElement("table", { className: "table table-striped latest-data" },
+	                create_element_1.default.createElement("tbody", null)));
+	    };
+	    App.prototype.didMounted = function () {
+	        perf_monitor_1.startFPSMonitor();
+	        perf_monitor_1.startMemMonitor();
+	        perf_monitor_1.initProfiler('data update');
+	        perf_monitor_1.initProfiler('view update');
+	        perf_monitor_1.initProfiler('parse and render');
+	        perf_monitor_1.initProfiler('diff node');
+	        this.update();
+	    };
 	    return App;
 	}(container_1.Container));
-	var initData = {
-	    list: [{
-	            title: '这是一条已完成的',
-	            editing: false,
-	            checked: true
-	        }],
-	    name: '',
-	    filter: FilterType.ALL
-	};
-	var app = new App(initData);
-	app.mountTo(document.querySelector('.app-container'));
+	var app = new App({ dbs: [] });
+	app.mountTo(document.getElementById('dbmon'));
 
 
 /***/ },
-/* 1 */,
-/* 2 */,
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(2);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(4)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../node_modules/css-loader/index.js!./styles.css", function() {
+				var newContent = require("!!./../node_modules/css-loader/index.js!./styles.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(3)();
+	// imports
+
+
+	// module
+	exports.push([module.id, "table {\n  font-family: \"Helvetica Neue\",Helvetica,Arial,sans-serif;\n  font-size: 14px;\n  line-height: 1.42857143;\n  color: #333;\n  background-color: #fff;\n}\n\n#link {\n  position: fixed;\n  top: 0; right: 0;\n  font-size: 12px;\n  padding: 5px 10px;\n  background: rgba(255,255,255,0.85);\n  z-index: 5;\n  box-shadow: 0 0 8px rgba(0,0,0,0.6);\n}\n\n#link .center {\n  display: block;\n  text-align: center;\n}\n\n.Query {\n  position: relative;\n}\n\n.Query:hover .popover {\n  left: -100%;\n  width: 100%;\n  display: block;\n}\n", ""]);
+
+	// exports
+
+
+/***/ },
 /* 3 */
 /***/ function(module, exports) {
 
@@ -1459,514 +1501,77 @@
 
 
 /***/ },
-/* 12 */,
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-
-	// load the styles
-	var content = __webpack_require__(14);
-	if(typeof content === 'string') content = [[module.id, content, '']];
-	// add the styles to the DOM
-	var update = __webpack_require__(4)(content, {});
-	if(content.locals) module.exports = content.locals;
-	// Hot Module Replacement
-	if(false) {
-		// When the styles change, update the <style> tags
-		if(!content.locals) {
-			module.hot.accept("!!./../css-loader/index.js!./base.css", function() {
-				var newContent = require("!!./../css-loader/index.js!./base.css");
-				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-				update(newContent);
-			});
-		}
-		// When the module is disposed, remove the <style> tags
-		module.hot.dispose(function() { update(); });
-	}
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	exports = module.exports = __webpack_require__(3)();
-	// imports
-
-
-	// module
-	exports.push([module.id, "hr {\n\tmargin: 20px 0;\n\tborder: 0;\n\tborder-top: 1px dashed #c5c5c5;\n\tborder-bottom: 1px dashed #f7f7f7;\n}\n\n.learn a {\n\tfont-weight: normal;\n\ttext-decoration: none;\n\tcolor: #b83f45;\n}\n\n.learn a:hover {\n\ttext-decoration: underline;\n\tcolor: #787e7e;\n}\n\n.learn h3,\n.learn h4,\n.learn h5 {\n\tmargin: 10px 0;\n\tfont-weight: 500;\n\tline-height: 1.2;\n\tcolor: #000;\n}\n\n.learn h3 {\n\tfont-size: 24px;\n}\n\n.learn h4 {\n\tfont-size: 18px;\n}\n\n.learn h5 {\n\tmargin-bottom: 0;\n\tfont-size: 14px;\n}\n\n.learn ul {\n\tpadding: 0;\n\tmargin: 0 0 30px 25px;\n}\n\n.learn li {\n\tline-height: 20px;\n}\n\n.learn p {\n\tfont-size: 15px;\n\tfont-weight: 300;\n\tline-height: 1.3;\n\tmargin-top: 0;\n\tmargin-bottom: 0;\n}\n\n#issue-count {\n\tdisplay: none;\n}\n\n.quote {\n\tborder: none;\n\tmargin: 20px 0 60px 0;\n}\n\n.quote p {\n\tfont-style: italic;\n}\n\n.quote p:before {\n\tcontent: '\\201C';\n\tfont-size: 50px;\n\topacity: .15;\n\tposition: absolute;\n\ttop: -20px;\n\tleft: 3px;\n}\n\n.quote p:after {\n\tcontent: '\\201D';\n\tfont-size: 50px;\n\topacity: .15;\n\tposition: absolute;\n\tbottom: -42px;\n\tright: 3px;\n}\n\n.quote footer {\n\tposition: absolute;\n\tbottom: -40px;\n\tright: 0;\n}\n\n.quote footer img {\n\tborder-radius: 3px;\n}\n\n.quote footer a {\n\tmargin-left: 5px;\n\tvertical-align: middle;\n}\n\n.speech-bubble {\n\tposition: relative;\n\tpadding: 10px;\n\tbackground: rgba(0, 0, 0, .04);\n\tborder-radius: 5px;\n}\n\n.speech-bubble:after {\n\tcontent: '';\n\tposition: absolute;\n\ttop: 100%;\n\tright: 30px;\n\tborder: 13px solid transparent;\n\tborder-top-color: rgba(0, 0, 0, .04);\n}\n\n.learn-bar > .learn {\n\tposition: absolute;\n\twidth: 272px;\n\ttop: 8px;\n\tleft: -300px;\n\tpadding: 10px;\n\tborder-radius: 5px;\n\tbackground-color: rgba(255, 255, 255, .6);\n\ttransition-property: left;\n\ttransition-duration: 500ms;\n}\n\n@media (min-width: 899px) {\n\t.learn-bar {\n\t\twidth: auto;\n\t\tpadding-left: 300px;\n\t}\n\n\t.learn-bar > .learn {\n\t\tleft: 8px;\n\t}\n}\n", ""]);
-
-	// exports
-
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-
-	// load the styles
-	var content = __webpack_require__(16);
-	if(typeof content === 'string') content = [[module.id, content, '']];
-	// add the styles to the DOM
-	var update = __webpack_require__(4)(content, {});
-	if(content.locals) module.exports = content.locals;
-	// Hot Module Replacement
-	if(false) {
-		// When the styles change, update the <style> tags
-		if(!content.locals) {
-			module.hot.accept("!!./../css-loader/index.js!./index.css", function() {
-				var newContent = require("!!./../css-loader/index.js!./index.css");
-				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-				update(newContent);
-			});
-		}
-		// When the module is disposed, remove the <style> tags
-		module.hot.dispose(function() { update(); });
-	}
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	exports = module.exports = __webpack_require__(3)();
-	// imports
-
-
-	// module
-	exports.push([module.id, "html,\nbody {\n\tmargin: 0;\n\tpadding: 0;\n}\n\nbutton {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tbackground: none;\n\tfont-size: 100%;\n\tvertical-align: baseline;\n\tfont-family: inherit;\n\tfont-weight: inherit;\n\tcolor: inherit;\n\t-webkit-appearance: none;\n\tappearance: none;\n\t-webkit-font-smoothing: antialiased;\n\t-moz-osx-font-smoothing: grayscale;\n}\n\nbody {\n\tfont: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;\n\tline-height: 1.4em;\n\tbackground: #f5f5f5;\n\tcolor: #4d4d4d;\n\tmin-width: 230px;\n\tmax-width: 550px;\n\tmargin: 0 auto;\n\t-webkit-font-smoothing: antialiased;\n\t-moz-osx-font-smoothing: grayscale;\n\tfont-weight: 300;\n}\n\n:focus {\n\toutline: 0;\n}\n\n.hidden {\n\tdisplay: none;\n}\n\n.todoapp {\n\tbackground: #fff;\n\tmargin: 130px 0 40px 0;\n\tposition: relative;\n\tbox-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2),\n\t            0 25px 50px 0 rgba(0, 0, 0, 0.1);\n}\n\n.todoapp input::-webkit-input-placeholder {\n\tfont-style: italic;\n\tfont-weight: 300;\n\tcolor: #e6e6e6;\n}\n\n.todoapp input::-moz-placeholder {\n\tfont-style: italic;\n\tfont-weight: 300;\n\tcolor: #e6e6e6;\n}\n\n.todoapp input::input-placeholder {\n\tfont-style: italic;\n\tfont-weight: 300;\n\tcolor: #e6e6e6;\n}\n\n.todoapp h1 {\n\tposition: absolute;\n\ttop: -155px;\n\twidth: 100%;\n\tfont-size: 100px;\n\tfont-weight: 100;\n\ttext-align: center;\n\tcolor: rgba(175, 47, 47, 0.15);\n\t-webkit-text-rendering: optimizeLegibility;\n\t-moz-text-rendering: optimizeLegibility;\n\ttext-rendering: optimizeLegibility;\n}\n\n.new-todo,\n.edit {\n\tposition: relative;\n\tmargin: 0;\n\twidth: 100%;\n\tfont-size: 24px;\n\tfont-family: inherit;\n\tfont-weight: inherit;\n\tline-height: 1.4em;\n\tborder: 0;\n\tcolor: inherit;\n\tpadding: 6px;\n\tborder: 1px solid #999;\n\tbox-shadow: inset 0 -1px 5px 0 rgba(0, 0, 0, 0.2);\n\tbox-sizing: border-box;\n\t-webkit-font-smoothing: antialiased;\n\t-moz-osx-font-smoothing: grayscale;\n}\n\n.new-todo {\n\tpadding: 16px 16px 16px 60px;\n\tborder: none;\n\tbackground: rgba(0, 0, 0, 0.003);\n\tbox-shadow: inset 0 -2px 1px rgba(0,0,0,0.03);\n}\n\n.main {\n\tposition: relative;\n\tz-index: 2;\n\tborder-top: 1px solid #e6e6e6;\n}\n\nlabel[for='toggle-all'] {\n\tdisplay: none;\n}\n\n.toggle-all {\n\tposition: absolute;\n\ttop: -55px;\n\tleft: -12px;\n\twidth: 60px;\n\theight: 34px;\n\ttext-align: center;\n\tborder: none; /* Mobile Safari */\n}\n\n.toggle-all:before {\n\tcontent: '\\276F';\n\tfont-size: 22px;\n\tcolor: #e6e6e6;\n\tpadding: 10px 27px 10px 27px;\n}\n\n.toggle-all:checked:before {\n\tcolor: #737373;\n}\n\n.todo-list {\n\tmargin: 0;\n\tpadding: 0;\n\tlist-style: none;\n}\n\n.todo-list li {\n\tposition: relative;\n\tfont-size: 24px;\n\tborder-bottom: 1px solid #ededed;\n}\n\n.todo-list li:last-child {\n\tborder-bottom: none;\n}\n\n.todo-list li.editing {\n\tborder-bottom: none;\n\tpadding: 0;\n}\n\n.todo-list li.editing .edit {\n\tdisplay: block;\n\twidth: 506px;\n\tpadding: 12px 16px;\n\tmargin: 0 0 0 43px;\n}\n\n.todo-list li.editing .view {\n\tdisplay: none;\n}\n\n.todo-list li .toggle {\n\ttext-align: center;\n\twidth: 40px;\n\t/* auto, since non-WebKit browsers doesn't support input styling */\n\theight: auto;\n\tposition: absolute;\n\ttop: 0;\n\tbottom: 0;\n\tmargin: auto 0;\n\tborder: none; /* Mobile Safari */\n\t-webkit-appearance: none;\n\tappearance: none;\n}\n\n.todo-list li .toggle:after {\n\tcontent: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"-10 -18 100 135\"><circle cx=\"50\" cy=\"50\" r=\"50\" fill=\"none\" stroke=\"#ededed\" stroke-width=\"3\"/></svg>');\n}\n\n.todo-list li .toggle:checked:after {\n\tcontent: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"-10 -18 100 135\"><circle cx=\"50\" cy=\"50\" r=\"50\" fill=\"none\" stroke=\"#bddad5\" stroke-width=\"3\"/><path fill=\"#5dc2af\" d=\"M72 25L42 71 27 56l-4 4 20 20 34-52z\"/></svg>');\n}\n\n.todo-list li label {\n\tword-break: break-all;\n\tpadding: 15px 60px 15px 15px;\n\tmargin-left: 45px;\n\tdisplay: block;\n\tline-height: 1.2;\n\ttransition: color 0.4s;\n}\n\n.todo-list li.completed label {\n\tcolor: #d9d9d9;\n\ttext-decoration: line-through;\n}\n\n.todo-list li .destroy {\n\tdisplay: none;\n\tposition: absolute;\n\ttop: 0;\n\tright: 10px;\n\tbottom: 0;\n\twidth: 40px;\n\theight: 40px;\n\tmargin: auto 0;\n\tfont-size: 30px;\n\tcolor: #cc9a9a;\n\tmargin-bottom: 11px;\n\ttransition: color 0.2s ease-out;\n}\n\n.todo-list li .destroy:hover {\n\tcolor: #af5b5e;\n}\n\n.todo-list li .destroy:after {\n\tcontent: '\\D7';\n}\n\n.todo-list li:hover .destroy {\n\tdisplay: block;\n}\n\n.todo-list li .edit {\n\tdisplay: none;\n}\n\n.todo-list li.editing:last-child {\n\tmargin-bottom: -1px;\n}\n\n.footer {\n\tcolor: #777;\n\tpadding: 10px 15px;\n\theight: 20px;\n\ttext-align: center;\n\tborder-top: 1px solid #e6e6e6;\n}\n\n.footer:before {\n\tcontent: '';\n\tposition: absolute;\n\tright: 0;\n\tbottom: 0;\n\tleft: 0;\n\theight: 50px;\n\toverflow: hidden;\n\tbox-shadow: 0 1px 1px rgba(0, 0, 0, 0.2),\n\t            0 8px 0 -3px #f6f6f6,\n\t            0 9px 1px -3px rgba(0, 0, 0, 0.2),\n\t            0 16px 0 -6px #f6f6f6,\n\t            0 17px 2px -6px rgba(0, 0, 0, 0.2);\n}\n\n.todo-count {\n\tfloat: left;\n\ttext-align: left;\n}\n\n.todo-count strong {\n\tfont-weight: 300;\n}\n\n.filters {\n\tmargin: 0;\n\tpadding: 0;\n\tlist-style: none;\n\tposition: absolute;\n\tright: 0;\n\tleft: 0;\n}\n\n.filters li {\n\tdisplay: inline;\n}\n\n.filters li a {\n\tcolor: inherit;\n\tmargin: 3px;\n\tpadding: 3px 7px;\n\ttext-decoration: none;\n\tborder: 1px solid transparent;\n\tborder-radius: 3px;\n}\n\n.filters li a:hover {\n\tborder-color: rgba(175, 47, 47, 0.1);\n}\n\n.filters li a.selected {\n\tborder-color: rgba(175, 47, 47, 0.2);\n}\n\n.clear-completed,\nhtml .clear-completed:active {\n\tfloat: right;\n\tposition: relative;\n\tline-height: 20px;\n\ttext-decoration: none;\n\tcursor: pointer;\n}\n\n.clear-completed:hover {\n\ttext-decoration: underline;\n}\n\n.info {\n\tmargin: 65px auto 0;\n\tcolor: #bfbfbf;\n\tfont-size: 10px;\n\ttext-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);\n\ttext-align: center;\n}\n\n.info p {\n\tline-height: 1;\n}\n\n.info a {\n\tcolor: inherit;\n\ttext-decoration: none;\n\tfont-weight: 400;\n}\n\n.info a:hover {\n\ttext-decoration: underline;\n}\n\n/*\n\tHack to remove background from Mobile Safari.\n\tCan't use it globally since it destroys checkboxes in Firefox\n*/\n@media screen and (-webkit-min-device-pixel-ratio:0) {\n\t.toggle-all,\n\t.todo-list li .toggle {\n\t\tbackground: none;\n\t}\n\n\t.todo-list li .toggle {\n\t\theight: 40px;\n\t}\n\n\t.toggle-all {\n\t\t-webkit-transform: rotate(90deg);\n\t\ttransform: rotate(90deg);\n\t\t-webkit-appearance: none;\n\t\tappearance: none;\n\t}\n}\n\n@media (max-width: 430px) {\n\t.footer {\n\t\theight: 50px;\n\t}\n\n\t.filters {\n\t\tbottom: 10px;\n\t}\n}\n", ""]);
-
-	// exports
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var component_1 = __webpack_require__(11);
-	var utils_1 = __webpack_require__(18);
-	var v_1 = __webpack_require__(19);
-	var TodoList = (function (_super) {
-	    __extends(TodoList, _super);
-	    function TodoList() {
-	        var _this = _super.apply(this, arguments) || this;
-	        _this.editInputs = [];
-	        _this.destory = function (index) {
-	            return function () {
-	                _this.send('DESTORY', { index: index });
-	            };
-	        };
-	        _this.toggleItem = function (index) {
-	            return function () {
-	                _this.send('TOGGLE', { index: index });
-	            };
-	        };
-	        return _this;
-	    }
-	    TodoList.prototype.render = function (list) {
-	        var _this = this;
-	        return (_a = ["\n        <ul class=\"todo-list\">\n            ", "\n        </ul>\n        "], _a.raw = ["\n        <ul class=\"todo-list\">\n            ",
-	            "\n        </ul>\n        "], v_1.default(_a, list.map(function (item, index) {
-	            return (_a = ["<li class=\"", "\">\n            <div class=\"view\">\n            <input type=\"checkbox\" class=\"toggle\" ", " onchange=", " />\n            <label ondblclick=", ">", "</label>\n            <button class=\"destroy\" onclick=", "></button>\n            </div>\n            <input class=\"edit\"\n                ref=", "\n                type=\"text\" value=\"", "\"\n                onkeydown=", " onblur=", " />\n        </li>"], _a.raw = ["<li class=\"", "\">\n            <div class=\"view\">\n            <input type=\"checkbox\" class=\"toggle\" ", " onchange=", " />\n            <label ondblclick=", ">", "</label>\n            <button class=\"destroy\" onclick=", "></button>\n            </div>\n            <input class=\"edit\"\n                ref=", "\n                type=\"text\" value=\"", "\"\n                onkeydown=", " onblur=", " />\n        </li>"], v_1.default(_a, utils_1.classList({ completed: item.checked, editing: item.editing }), item.checked ? 'checked' : '', _this.toggleItem(index), _this.toggleEditState(index), item.title, _this.destory(index), function (input) { return _this.editInputs[index] = input; }, item.title, _this.update(index), _this.update(index)));
-	            var _a;
-	        })));
-	        var _a;
-	    };
-	    TodoList.prototype.toggleEditState = function (index) {
-	        var _this = this;
-	        return function (e) {
-	            _this.send('EDIT', { index: index });
-	            _this.editInputs[index].focus();
-	            var valLen = _this.editInputs[index].value.length;
-	            _this.editInputs[index].setSelectionRange(valLen, valLen);
-	        };
-	    };
-	    TodoList.prototype.update = function (index) {
-	        var _this = this;
-	        return function (evt) {
-	            var target = evt.currentTarget;
-	            if (evt.type === 'keydown') {
-	                var keyBoardEvt = evt;
-	                if (keyBoardEvt.keyCode === 13 && target.value) {
-	                    _this.send('UPDATE', { index: index, title: target.value });
-	                }
-	                else if (keyBoardEvt.keyCode === 27) {
-	                    _this.send('CANCEL_EDIT', { index: index });
-	                }
-	            }
-	            else if (evt.type === 'blur') {
-	                _this.send('UPDATE', { index: index, title: target.value });
-	            }
-	        };
-	    };
-	    return TodoList;
-	}(component_1.Component));
-	exports.TodoList = TodoList;
-
-
-/***/ },
-/* 18 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict";
-	function classList(clist) {
-	    var cl = [];
-	    for (var _i = 0, _a = Object.keys(clist); _i < _a.length; _i++) {
-	        var className = _a[_i];
-	        if (clist[className] === true) {
-	            cl.push(className);
-	        }
+	var Query = (function () {
+	    function Query(elapsed, query) {
+	        this.elapsed = elapsed;
+	        this.query = query;
 	    }
-	    return cl.join(' ');
-	}
-	exports.classList = classList;
-
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var hyper_parser_1 = __webpack_require__(20);
-	var create_element_1 = __webpack_require__(5);
-	var hp = new hyper_parser_1.HyperParser(create_element_1.default);
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = hp.tpl.bind(hp);
-
-
-/***/ },
-/* 20 */
-/***/ function(module, exports) {
-
-	"use strict";
-	var ParseState;
-	(function (ParseState) {
-	    ParseState[ParseState["OPEN"] = 0] = "OPEN";
-	    ParseState[ParseState["CLOSE"] = 1] = "CLOSE";
-	    ParseState[ParseState["ATTR"] = 2] = "ATTR";
-	    ParseState[ParseState["TEXT"] = 3] = "TEXT";
-	    ParseState[ParseState["DEFINE"] = 4] = "DEFINE";
-	    ParseState[ParseState["ATTR_KEY"] = 5] = "ATTR_KEY";
-	    ParseState[ParseState["ATTR_EQUAL"] = 6] = "ATTR_EQUAL";
-	    ParseState[ParseState["ATTR_VALUE"] = 7] = "ATTR_VALUE";
-	    ParseState[ParseState["ATTR_BREAK"] = 8] = "ATTR_BREAK";
-	    ParseState[ParseState["ATTR_KEY_END"] = 9] = "ATTR_KEY_END";
-	    ParseState[ParseState["ATTR_VALUE_START"] = 10] = "ATTR_VALUE_START";
-	    ParseState[ParseState["ATTR_VALUE_SINGLE_QOUTE"] = 11] = "ATTR_VALUE_SINGLE_QOUTE";
-	    ParseState[ParseState["ATTR_VALUE_DOUBLE_QOUTE"] = 12] = "ATTR_VALUE_DOUBLE_QOUTE";
-	})(ParseState || (ParseState = {}));
-	var HyperParser = (function () {
-	    function HyperParser(h) {
-	        this.h = h;
-	    }
-	    HyperParser.isSelfCloseTag = function (tagName) {
-	        return this.closeRE.test(tagName);
+	    Query.rand = function () {
+	        var elapsed = Math.random() * 15;
+	        var query = 'SELECT * FROM table';
+	        if (Math.random() < 0.2) {
+	            query = '<IDLE> in transaction';
+	        }
+	        if (Math.random() < 0.1) {
+	            query = 'vacuum';
+	        }
+	        return new Query(elapsed, query);
 	    };
-	    HyperParser.prototype.tpl = function (strings) {
-	        var values = [];
-	        for (var _i = 1; _i < arguments.length; _i++) {
-	            values[_i - 1] = arguments[_i];
-	        }
-	        var nodesMeta = [];
-	        this.parseStore = [];
-	        this.state = ParseState.TEXT;
-	        for (var i = 0; i < strings.length; i++) {
-	            var p = this.parseNode(strings[i]);
-	            if (i < values.length) {
-	                var val = values[i];
-	                var defineState = this.state;
-	                defineState = [ParseState.ATTR_VALUE_DOUBLE_QOUTE, ParseState.ATTR_VALUE_SINGLE_QOUTE, ParseState.ATTR_VALUE_START]
-	                    .indexOf(defineState) >= 0 ? ParseState.ATTR_VALUE : defineState;
-	                defineState = [ParseState.ATTR].indexOf(defineState) >= 0 ? ParseState.ATTR_KEY : defineState;
-	                p.push([ParseState.DEFINE, defineState, val]);
-	            }
-	            nodesMeta.push.apply(nodesMeta, p);
-	        }
-	        // console.log('parse nodes meta:', nodesMeta.map(nodeMeta => {
-	        //     let transformNodeMeta = [ParseState[nodeMeta[0]]];
-	        //     for (let i = 1; i < nodeMeta.length; i++) {
-	        //         transformNodeMeta[i] = nodeMeta[i];
-	        //         transformNodeMeta[i - 1] = ParseState[nodeMeta[i - 1]];
-	        //     }
-	        //     return transformNodeMeta;
-	        // }));
-	        return this.parseNodesMeta(nodesMeta);
-	    };
-	    HyperParser.prototype.parseNodesMeta = function (nodesMeta) {
-	        var node = { tagName: null, attrs: {}, children: [] }, stack = [{ node: node, childrenCount: -1 }];
-	        for (var i = 0; i < nodesMeta.length; i++) {
-	            var current = stack[stack.length - 1]['node'], nodeMeta = nodesMeta[i], state = nodeMeta[0];
-	            if (state === ParseState.OPEN && /^\//.test(nodeMeta[1])) {
-	                var childrenCount = stack[stack.length - 1]['childrenCount'];
-	                if (stack.length > 1) {
-	                    stack.pop();
-	                    stack[stack.length - 1]['node']['children'][childrenCount] = this.h(current.tagName, current.attrs, current.children.length ? current.children : []);
-	                }
-	            }
-	            else if (state === ParseState.OPEN) {
-	                var _node = { tagName: nodeMeta[1], attrs: {}, children: [] };
-	                current.children.push(_node);
-	                stack.push({ node: _node, childrenCount: current.children.length - 1 });
-	            }
-	            else if (state === ParseState.ATTR_KEY || (state === ParseState.DEFINE && nodeMeta[1] === ParseState.ATTR_KEY)) {
-	                var key = '', _nodeMeta = void 0;
-	                for (; i < nodesMeta.length; i++) {
-	                    _nodeMeta = nodesMeta[i];
-	                    if (_nodeMeta[0] === ParseState.ATTR_KEY) {
-	                        key = key.concat(_nodeMeta[1]);
-	                    }
-	                    else if (_nodeMeta[0] === ParseState.DEFINE && _nodeMeta[1] === ParseState.ATTR_KEY) {
-	                        if (Object.prototype.toString.call(_nodeMeta[2]) === '[object Object]' && !key) {
-	                            for (var _i = 0, _a = Object.keys(_nodeMeta[2]); _i < _a.length; _i++) {
-	                                var _key = _a[_i];
-	                                if (!current.attrs.hasOwnProperty(_key)) {
-	                                    current.attrs[_key] = _nodeMeta[2][_key];
-	                                }
-	                            }
-	                        }
-	                        else {
-	                            key = key.concat(_nodeMeta[2]);
-	                        }
-	                    }
-	                    else {
-	                        break;
-	                    }
-	                }
-	                if (_nodeMeta[0] === ParseState.ATTR_EQUAL) {
-	                    i++;
-	                }
-	                var j = i;
-	                for (; i < nodesMeta.length; i++) {
-	                    _nodeMeta = nodesMeta[i];
-	                    if (_nodeMeta[0] === ParseState.ATTR_VALUE || _nodeMeta[0] === ParseState.ATTR_KEY) {
-	                        if (!current.attrs.hasOwnProperty(key)) {
-	                            current.attrs[key] = _nodeMeta[1];
-	                        }
-	                        else {
-	                            if (Object.prototype.toString.call(current.attrs[key]) === '[object String]') {
-	                                current.attrs[key] = current.attrs[key].concat(_nodeMeta[1]);
-	                            }
-	                        }
-	                    }
-	                    else if (_nodeMeta[0] === ParseState.DEFINE &&
-	                        [ParseState.ATTR_KEY, ParseState.ATTR_VALUE].indexOf(_nodeMeta[1]) >= 0) {
-	                        if (!current.attrs.hasOwnProperty(key)) {
-	                            current.attrs[key] = _nodeMeta[2];
-	                        }
-	                        else {
-	                            current.attrs[key] = current.attrs[key].concat(_nodeMeta[2]);
-	                        }
-	                    }
-	                    else {
-	                        if (key.length && !current.attrs.hasOwnProperty(key) && i === j &&
-	                            [ParseState.CLOSE, ParseState.ATTR_BREAK].indexOf(_nodeMeta[0]) >= 0) {
-	                            current.attrs[key] = key.toLowerCase();
-	                        }
-	                        break;
-	                    }
-	                }
-	            }
-	            else if (state === ParseState.CLOSE) {
-	                if (HyperParser.isSelfCloseTag(current.tagName) && stack.length) {
-	                    var childrenCount = stack[stack.length - 1]['childrenCount'];
-	                    stack.pop();
-	                    stack[stack.length - 1]['node']['children'][childrenCount] = this.h(current.tagName, current.attrs, current.children.length ? current.children : []);
-	                }
-	            }
-	            else if (state === ParseState.DEFINE && nodeMeta[1] === ParseState.TEXT) {
-	                if (nodeMeta[2] === undefined || nodeMeta[2] === null) {
-	                    nodeMeta[2] = '';
-	                }
-	                else if (!nodeMeta[2]) {
-	                    nodeMeta[2] = nodeMeta[2].toString();
-	                }
-	                if (Array.isArray(nodeMeta[2][0])) {
-	                    current.children.push.apply(current.children, nodeMeta[2]);
-	                }
-	                else if (nodeMeta[2] instanceof Element || Array.isArray(nodeMeta[2])) {
-	                    current.children.push(nodeMeta[2]);
-	                }
-	                else {
-	                    current.children.push(nodeMeta[2].toString());
-	                }
-	            }
-	            else if (state === ParseState.TEXT) {
-	                current.children.push(nodeMeta[1]);
-	            }
-	            else if ([ParseState.ATTR_EQUAL, ParseState.ATTR_BREAK].indexOf(state) >= 0) {
-	            }
-	            else {
-	                throw new Error("unhandled state: " + state);
-	            }
-	        }
-	        if (node.children.length > 1 && /^\s*$/.test(node.children[0])) {
-	            node.children.shift();
-	        }
-	        if (node.children.length > 2 || (node.children.length === 2 && /\S/.test(node.children[1]))) {
-	            throw new Error('can only have one root element');
-	        }
-	        if (Array.isArray(node.children[0]) && Object.prototype.toString.call(node.children[0][0]) &&
-	            Array.isArray(node.children[0][2])) {
-	            node.children[0] = this.h(node.children[0][0], node.children[0][1], node.children[0][2]);
-	        }
-	        return node.children[0];
-	    };
-	    HyperParser.prototype.flushParseStore = function () {
-	        return this.parseStore.splice(0, this.parseStore.length).join('');
-	    };
-	    HyperParser.prototype.isInValueStates = function () {
-	        return [ParseState.ATTR_VALUE_DOUBLE_QOUTE, ParseState.ATTR_VALUE_SINGLE_QOUTE, ParseState.ATTR_VALUE]
-	            .indexOf(this.state) >= 0;
-	    };
-	    /**
-	     * 是否为引号中
-	     *
-	     * @returns {boolean}
-	     */
-	    HyperParser.prototype.isQouteState = function () {
-	        return this.state === ParseState.ATTR_VALUE_DOUBLE_QOUTE || this.state === ParseState.ATTR_VALUE_SINGLE_QOUTE;
-	    };
-	    /**
-	     * 是否为配对的引号
-	     *
-	     * @param c {string} 当前正在解析的字符
-	     * @returns {boolean}
-	     */
-	    HyperParser.prototype.isPairQoute = function (c) {
-	        if (c === '"' && this.state === ParseState.ATTR_VALUE_DOUBLE_QOUTE) {
-	            return true;
-	        }
-	        if (c === '\'' && this.state === ParseState.ATTR_VALUE_SINGLE_QOUTE) {
-	            return true;
-	        }
-	        return false;
-	    };
-	    HyperParser.prototype.parseNode = function (str) {
-	        var p = [];
-	        for (var i = 0; i < str.length; i++) {
-	            var c = str.charAt(i);
-	            if (this.state === ParseState.TEXT && c === '<') {
-	                // 找到节点起始标记
-	                var parseContent = this.flushParseStore();
-	                if (parseContent) {
-	                    p.push([this.state, parseContent]);
-	                }
-	                this.state = ParseState.OPEN;
-	            }
-	            else if (c === '>' && !this.isQouteState()) {
-	                // 找到节点结束标记
-	                var parseContent = this.flushParseStore();
-	                if ([ParseState.OPEN, ParseState.ATTR_KEY, ParseState.ATTR_VALUE].indexOf(this.state) >= 0) {
-	                    p.push([this.state, parseContent]);
-	                }
-	                p.push([ParseState.CLOSE]);
-	                this.state = ParseState.TEXT;
-	            }
-	            else if (this.state === ParseState.TEXT) {
-	                this.parseStore.push(c);
-	            }
-	            else if (this.state === ParseState.OPEN && /\s/.test(c)) {
-	                // 在节点未闭合前发现空格，标识为节点属性
-	                p.push([this.state, this.flushParseStore()]);
-	                this.state = ParseState.ATTR;
-	            }
-	            else if (this.state === ParseState.OPEN) {
-	                // 记录节点名称
-	                this.parseStore.push(c);
-	            }
-	            else if (this.state === ParseState.ATTR && /[\w-]/.test(c)) {
-	                // 记录节点属性名
-	                this.parseStore.push(c);
-	                this.state = ParseState.ATTR_KEY;
-	            }
-	            else if (this.state === ParseState.ATTR && /\s/.test(c)) {
-	                if (this.parseStore.length) {
-	                    p.push([ParseState.ATTR_KEY, this.flushParseStore()]);
-	                }
-	                p.push([ParseState.ATTR_BREAK]);
-	            }
-	            else if (this.state === ParseState.ATTR_KEY && /\s/.test(c)) {
-	                p.push([this.state, this.flushParseStore()]);
-	                this.state = ParseState.ATTR_KEY_END;
-	            }
-	            else if (this.state === ParseState.ATTR_KEY && c === '=') {
-	                p.push([this.state, this.flushParseStore()], [ParseState.ATTR_EQUAL]);
-	                this.state = ParseState.ATTR_VALUE_START;
-	            }
-	            else if (this.state === ParseState.ATTR_KEY) {
-	                this.parseStore.push(c);
-	            }
-	            else if ((this.state === ParseState.ATTR_KEY_END || this.state === ParseState.ATTR) && c === '=') {
-	                p.push([ParseState.ATTR_EQUAL]);
-	                this.state = ParseState.ATTR_VALUE_START;
-	            }
-	            else if ((this.state === ParseState.ATTR_KEY_END || this.state === ParseState.ATTR) && /\S/.test(c)) {
-	                p.push([ParseState.ATTR_BREAK]);
-	                if (/[\w-]/.test(c)) {
-	                    this.parseStore.push(c);
-	                    this.state = ParseState.ATTR_KEY;
-	                }
-	                else {
-	                    this.state = ParseState.ATTR;
-	                }
-	            }
-	            else if (this.state === ParseState.ATTR_VALUE_START && c === '"') {
-	                this.state = ParseState.ATTR_VALUE_DOUBLE_QOUTE;
-	            }
-	            else if (this.state === ParseState.ATTR_VALUE_START && c === '\'') {
-	                this.state = ParseState.ATTR_VALUE_SINGLE_QOUTE;
-	            }
-	            else if (this.isPairQoute(c)) {
-	                p.push([ParseState.ATTR_VALUE, this.flushParseStore()], [ParseState.ATTR_BREAK]);
-	                this.state = ParseState.ATTR;
-	            }
-	            else if (this.state === ParseState.ATTR_VALUE_START && /\S/.test(c)) {
-	                this.state = ParseState.ATTR_VALUE;
-	            }
-	            else if (this.state === ParseState.ATTR_VALUE_START && /\s/.test(c)) {
-	                p.push([ParseState.ATTR_VALUE, this.flushParseStore()], [ParseState.ATTR_BREAK]);
-	                this.state = ParseState.ATTR;
-	            }
-	            else if (this.isInValueStates()) {
-	                this.parseStore.push(c);
-	            }
-	        }
-	        if (this.state === ParseState.TEXT && this.parseStore.length) {
-	            p.push([this.state, this.flushParseStore()]);
-	        }
-	        else if (this.isInValueStates() && this.parseStore.length) {
-	            p.push([ParseState.ATTR_VALUE, this.flushParseStore()]);
-	        }
-	        else if (this.state === ParseState.ATTR_KEY && this.parseStore.length) {
-	            p.push([this.state, this.flushParseStore()]);
-	        }
-	        return p;
-	    };
-	    return HyperParser;
+	    return Query;
 	}());
-	HyperParser.closeRE = RegExp('^(' + [
-	    'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'command', 'embed',
-	    'frame', 'hr', 'img', 'input', 'isindex', 'keygen', 'link', 'meta', 'param',
-	    'source', 'track', 'wbr',
-	    // SVG TAGS
-	    'animate', 'animateTransform', 'circle', 'cursor', 'desc', 'ellipse',
-	    'feBlend', 'feColorMatrix', 'feComposite',
-	    'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap',
-	    'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR',
-	    'feGaussianBlur', 'feImage', 'feMergeNode', 'feMorphology',
-	    'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile',
-	    'feTurbulence', 'font-face-format', 'font-face-name', 'font-face-uri',
-	    'glyph', 'glyphRef', 'hkern', 'image', 'line', 'missing-glyph', 'mpath',
-	    'path', 'polygon', 'polyline', 'rect', 'set', 'stop', 'tref', 'use', 'view',
-	    'vkern'
-	].join('|') + ')(?:[\.#][a-zA-Z0-9\u007F-\uFFFF_:-]+)*$');
-	exports.HyperParser = HyperParser;
+	exports.Query = Query;
+	exports.EMPTY_QUERY = new Query(0.0, '');
+	var Database = (function () {
+	    function Database(name) {
+	        this.name = name;
+	        this.update();
+	    }
+	    Database.prototype.update = function () {
+	        this.queries = [];
+	        var r = Math.floor(Math.random() * 10 + 1);
+	        for (var j = 0; j < r; j++) {
+	            this.queries.push(Query.rand());
+	        }
+	    };
+	    Database.prototype.getTopFiveQueries = function () {
+	        var qs = this.queries.slice();
+	        qs.sort(function (a, b) { return a.elapsed - b.elapsed; });
+	        qs = qs.slice(0, 5);
+	        while (qs.length < 5) {
+	            qs.push(exports.EMPTY_QUERY);
+	        }
+	        return qs;
+	    };
+	    return Database;
+	}());
+	exports.Database = Database;
+	var DatabaseList = (function () {
+	    function DatabaseList(n) {
+	        this.dbs = [];
+	        for (var i = 0; i < n; i++) {
+	            this.dbs.push(new Database("cluster " + i));
+	            this.dbs.push(new Database("cluster " + i + " slave"));
+	        }
+	    }
+	    DatabaseList.prototype.update = function () {
+	        for (var i = 0; i < this.dbs.length; i++) {
+	            this.dbs[i] = new Database(this.dbs[i].name);
+	        }
+	    };
+	    DatabaseList.prototype.randomUpdate = function (r) {
+	        for (var i = 0; i < this.dbs.length; i++) {
+	            if (Math.random() < r) {
+	                this.dbs[i] = new Database(this.dbs[i].name);
+	            }
+	        }
+	    };
+	    return DatabaseList;
+	}());
+	exports.DatabaseList = DatabaseList;
 
 
 /***/ }
